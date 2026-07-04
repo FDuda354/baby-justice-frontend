@@ -1,0 +1,12 @@
+.DS_Store
+
+baby-justice.xcodeproj/xcuserdata/
+baby-justice.xcodeproj/project.xcworkspace/xcuserdata/
+baby-justice.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+backend/.gradle/
+backend/build/
+backend/out/
+
+.idea/
+*.iml
