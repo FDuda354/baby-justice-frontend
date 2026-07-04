@@ -4,6 +4,7 @@ struct ParentSettingsView: View {
     @State private var viewModel = ParentSettingsViewModel()
     @State private var showPasswordSheet = false
     @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountSheet = false
 
     var body: some View {
         Group {
@@ -28,6 +29,14 @@ struct ParentSettingsView: View {
         .sheet(isPresented: $showPasswordSheet) {
             ChangePasswordSheet()
         }
+        .sheet(isPresented: $showDeleteAccountSheet) {
+            DeleteAccountSheet(
+                consequences: "Usunięcie konta jest nieodwracalne. Twoja rodzina, wszystkie zadania, nagrody i cała historia rodziny znikną bezpowrotnie. Konta dzieci NIE zostaną usunięte — zostaną jedynie odłączone od rodziny i zachowają swoje punkty oraz historię.",
+                performDeletion: { password in
+                    try await APIClient.shared.deleteParentAccount(password: password)
+                }
+            )
+        }
         .confirmationDialog(
             "Czy na pewno chcesz się wylogować?",
             isPresented: $showLogoutConfirmation,
@@ -51,6 +60,7 @@ struct ParentSettingsView: View {
             accountSection
             helpSection
             logoutSection
+            deleteAccountSection
         }
     }
 
@@ -102,6 +112,18 @@ struct ParentSettingsView: View {
             } label: {
                 Label("Wyloguj się", systemImage: "rectangle.portrait.and.arrow.right")
             }
+        }
+    }
+
+    private var deleteAccountSection: some View {
+        Section {
+            Button(role: .destructive) {
+                showDeleteAccountSheet = true
+            } label: {
+                Label("Usuń konto", systemImage: "trash.fill")
+            }
+        } footer: {
+            Text("Trwałe usunięcie konta rodzica wraz z rodziną.")
         }
     }
 

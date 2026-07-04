@@ -84,7 +84,7 @@ struct RewardDetailView: View {
                 PointsBadge(points: reward.costPoints)
                     .font(.title3)
             }
-            StatusChip(text: reward.rewardType.displayName, color: .bjPrimaryDark)
+            StatusChip(text: reward.rewardType.displayName, color: .bjAccent)
             if !reward.description.isEmpty {
                 Text(reward.description)
                     .font(.body)
@@ -140,7 +140,7 @@ struct RewardDetailView: View {
             VStack(spacing: BJSpacing.s) {
                 Text("Kupione!")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
                 Text("Rodzic wyda Ci nagrodę.")
                     .font(.title3)
                     .foregroundStyle(.secondary)

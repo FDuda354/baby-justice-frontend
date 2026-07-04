@@ -296,7 +296,7 @@ private struct RewardRowView: View {
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                     HStack(spacing: BJSpacing.s) {
-                        StatusChip(text: reward.rewardType.displayName, color: .bjPrimaryDark)
+                        StatusChip(text: reward.rewardType.displayName, color: .bjAccent)
                         if reward.status != .active {
                             StatusChip(text: reward.status.displayName, color: rewardStatusColor(reward.status))
                         }

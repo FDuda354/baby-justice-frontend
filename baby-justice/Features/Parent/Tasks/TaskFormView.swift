@@ -202,7 +202,7 @@ struct TaskFormView: View {
                     Task { await model.loadChildren() }
                 }
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
             }
         } else if model.children.isEmpty {
             Text("Najpierw dodaj dziecko w zakładce Dzieci.")
@@ -219,7 +219,7 @@ struct TaskFormView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .tint(Color.bjPrimaryDark)
+                .tint(Color.bjAccent)
             }
             .padding(.horizontal, BJSpacing.m)
             .frame(height: BJSize.fieldHeight)

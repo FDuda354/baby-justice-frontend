@@ -153,7 +153,7 @@ private struct HelpSectionView: View {
             HStack(spacing: BJSpacing.s) {
                 Image(systemName: icon)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
                     .frame(width: 32, height: 32)
                     .background(Color.bjMint)
                     .clipShape(RoundedRectangle(cornerRadius: BJRadius.small, style: .continuous))

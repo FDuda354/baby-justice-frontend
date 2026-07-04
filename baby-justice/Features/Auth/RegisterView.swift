@@ -138,10 +138,10 @@ private struct ParentRegistrationSuccessView: View {
         VStack(spacing: BJSpacing.m) {
             Image(systemName: "person.badge.plus")
                 .font(.system(size: 36))
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
             Text("Jak dodać dzieci?")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
             Text("Każde dziecko zakłada własne konto w aplikacji i dostaje swój kod dziecka. Wpisz ten kod w zakładce Dzieci, aby dodać je do rodziny.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -178,7 +178,7 @@ private struct ChildRegistrationSuccessView: View {
         VStack(spacing: BJSpacing.m) {
             Text("Twój kod dziecka")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
             Text(auth.childCode ?? "")
                 .font(.system(size: 44, weight: .heavy, design: .monospaced))
                 .kerning(6)
@@ -188,7 +188,7 @@ private struct ChildRegistrationSuccessView: View {
             } label: {
                 Label(codeCopied ? "Skopiowano" : "Kopiuj kod", systemImage: codeCopied ? "checkmark" : "doc.on.doc")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
             }
             Text("Podaj ten kod rodzicowi — doda Cię nim do rodziny. Znajdziesz go też później w swoim profilu.")
                 .font(.footnote)

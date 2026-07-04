@@ -57,7 +57,7 @@ struct ChildAssignmentDetailView: View {
                         .foregroundStyle(Color.bjAmber)
                     Text("+\(assignment.points)")
                         .font(.system(size: 36, weight: .heavy, design: .rounded))
-                        .foregroundStyle(Color.bjPrimaryDark)
+                        .foregroundStyle(Color.bjAccent)
                     Text("pkt czeka na Ciebie")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)

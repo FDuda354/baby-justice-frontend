@@ -46,7 +46,7 @@ struct ChildTaskDetailView: View {
                         .foregroundStyle(Color.bjAmber)
                     Text("+\(task.points)")
                         .font(.system(size: 36, weight: .heavy, design: .rounded))
-                        .foregroundStyle(Color.bjPrimaryDark)
+                        .foregroundStyle(Color.bjAccent)
                     Text("pkt do zdobycia")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)

@@ -17,7 +17,7 @@ struct ErrorBanner: View {
             Button(action: retry) {
                 Label("Spróbuj ponownie", systemImage: "arrow.clockwise")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
             }
         }
         .padding(BJSpacing.l)

@@ -165,7 +165,7 @@ enum ParentTaskChipStyle {
 
     static func color(for availability: TaskAvailability) -> Color {
         switch availability {
-        case .shared: .bjPrimaryDark
+        case .shared: .bjAccent
         case .assigned: .indigo
         }
     }

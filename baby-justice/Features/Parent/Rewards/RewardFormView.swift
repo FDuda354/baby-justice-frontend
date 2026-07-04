@@ -136,7 +136,7 @@ struct RewardFormView: View {
                 PhotosPicker(selection: $photoItem, matching: .images) {
                     Label(model.imageData == nil ? "Wybierz zdjęcie" : "Zmień zdjęcie", systemImage: "photo")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.bjPrimaryDark)
+                        .foregroundStyle(Color.bjAccent)
                 }
                 if model.imageData != nil {
                     Spacer()

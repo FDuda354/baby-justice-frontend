@@ -6,6 +6,7 @@ struct ChildProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var showingPasswordSheet = false
     @State private var showingLogoutConfirmation = false
+    @State private var showingDeleteAccountSheet = false
     @State private var codeCopied = false
 
     var body: some View {
@@ -30,6 +31,14 @@ struct ChildProfileView: View {
         }
         .sheet(isPresented: $showingPasswordSheet) {
             ChildChangePasswordSheet()
+        }
+        .sheet(isPresented: $showingDeleteAccountSheet) {
+            DeleteAccountSheet(
+                consequences: "Uważaj — tego nie da się cofnąć. Twoje konto, wszystkie zebrane punkty i cała historia znikną bezpowrotnie. Jeśli kiedyś zechcesz wrócić, będziesz musiał założyć konto od nowa.",
+                performDeletion: { password in
+                    try await APIClient.shared.deleteChildAccount(password: password)
+                }
+            )
         }
         .confirmationDialog(
             "Czy na pewno chcesz się wylogować?",
@@ -70,6 +79,7 @@ struct ChildProfileView: View {
                     accountCard
                     helpCard
                     logoutButton
+                    deleteAccountButton
                 }
                 .padding(.horizontal, BJSpacing.l)
             }
@@ -97,7 +107,7 @@ struct ChildProfileView: View {
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
                         Label("Zmień zdjęcie", systemImage: "photo.fill")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.bjPrimaryDark)
+                            .foregroundStyle(Color.bjAccent)
                     }
                     if profile.hasAvatar {
                         Button {
@@ -119,7 +129,7 @@ struct ChildProfileView: View {
         if let info = viewModel.infoMessage {
             Text(info)
                 .font(.footnote.weight(.medium))
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         if let error = viewModel.actionError {
@@ -135,7 +145,7 @@ struct ChildProfileView: View {
             VStack(spacing: BJSpacing.m) {
                 Text("Twój kod dziecka")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
                 Text(profile.childCode)
                     .font(.system(size: 34, weight: .heavy, design: .monospaced))
                     .kerning(4)
@@ -145,7 +155,7 @@ struct ChildProfileView: View {
                 } label: {
                     Label(codeCopied ? "Skopiowano" : "Kopiuj kod", systemImage: codeCopied ? "checkmark" : "doc.on.doc")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.bjPrimaryDark)
+                        .foregroundStyle(Color.bjAccent)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -229,6 +239,18 @@ struct ChildProfileView: View {
                 .background(Color.bjDanger)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))
+        }
+    }
+
+    private var deleteAccountButton: some View {
+        Button {
+            showingDeleteAccountSheet = true
+        } label: {
+            Label("Usuń konto", systemImage: "trash.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.bjDanger)
+                .frame(maxWidth: .infinity)
+                .frame(height: BJSize.buttonHeight)
         }
     }
 

@@ -46,6 +46,10 @@ struct AddChildRequest: Encodable {
     let childCode: String
 }
 
+struct DeleteAccountRequest: Encodable {
+    let password: String
+}
+
 struct ImageUploadRequest: Encodable {
     let imageBase64: String
     let contentType: String
@@ -131,6 +135,10 @@ final class APIClient {
 
     func changeParentPassword(currentPassword: String, newPassword: String) async throws {
         try await requestVoid(method: "PUT", path: "/api/parent/account/password", body: ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword))
+    }
+
+    func deleteParentAccount(password: String) async throws {
+        try await requestVoid(method: "POST", path: "/api/parent/account/delete", body: DeleteAccountRequest(password: password))
     }
 
     func children() async throws -> [ChildDTO] {
@@ -245,6 +253,10 @@ final class APIClient {
 
     func changeChildPassword(current: String, new: String) async throws {
         try await requestVoid(method: "PUT", path: "/api/child/account/password", body: ChangePasswordRequest(currentPassword: current, newPassword: new))
+    }
+
+    func deleteChildAccount(password: String) async throws {
+        try await requestVoid(method: "POST", path: "/api/child/account/delete", body: DeleteAccountRequest(password: password))
     }
 
     func uploadChildAvatar(base64: String, contentType: String) async throws {

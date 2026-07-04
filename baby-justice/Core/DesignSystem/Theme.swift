@@ -1,22 +1,34 @@
 import SwiftUI
 
+extension UIColor {
+    convenience init(hex: UInt32) {
+        self.init(
+            red: CGFloat((hex >> 16) & 0xFF) / 255.0,
+            green: CGFloat((hex >> 8) & 0xFF) / 255.0,
+            blue: CGFloat(hex & 0xFF) / 255.0,
+            alpha: 1.0
+        )
+    }
+
+    static func adaptive(light: UInt32, dark: UInt32) -> UIColor {
+        UIColor { trait in
+            trait.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light)
+        }
+    }
+}
+
 extension Color {
     init(hex: UInt32) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xFF) / 255.0,
-            green: Double((hex >> 8) & 0xFF) / 255.0,
-            blue: Double(hex & 0xFF) / 255.0,
-            opacity: 1.0
-        )
+        self.init(uiColor: UIColor(hex: hex))
     }
 
     static let bjPrimary = Color(hex: 0x2FA96C)
     static let bjPrimaryDark = Color(hex: 0x1D7A4C)
-    static let bjMint = Color(hex: 0xE6F4EC)
+    static let bjMint = Color(uiColor: .adaptive(light: 0xE6F4EC, dark: 0x16301F))
+    static let bjAccent = Color(uiColor: .adaptive(light: 0x1D7A4C, dark: 0x7FD8A8))
     static let bjAmber = Color(hex: 0xF5A623)
     static let bjDanger = Color(hex: 0xD64545)
-    static let bjInk = Color(hex: 0x17251D)
+    static let bjInk = Color(uiColor: .adaptive(light: 0x17251D, dark: 0xE9F4EE))
 }
 
 enum BJRadius {

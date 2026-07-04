@@ -98,7 +98,7 @@ struct ChildDashboardView: View {
 
     private func bellIcon(unreadCount: Int) -> some View {
         Image(systemName: "bell.fill")
-            .foregroundStyle(Color.bjPrimaryDark)
+            .foregroundStyle(Color.bjAccent)
             .overlay(alignment: .topTrailing) {
                 if unreadCount > 0 {
                     Text("\(min(unreadCount, 99))")
@@ -139,7 +139,7 @@ private struct NoFamilyCard: View {
             } label: {
                 Label(codeCopied ? "Skopiowano" : "Kopiuj kod", systemImage: codeCopied ? "checkmark" : "doc.on.doc")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.bjPrimaryDark)
+                    .foregroundStyle(Color.bjAccent)
             }
             Text("Gdy dołączysz do rodziny, pojawią się tu zadania i nagrody.")
                 .font(.footnote)

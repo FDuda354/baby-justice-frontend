@@ -31,7 +31,7 @@ struct LandingView: View {
                 destination(for: route)
             }
         }
-        .tint(Color.bjPrimaryDark)
+        .tint(Color.bjAccent)
     }
 
     private var hero: some View {

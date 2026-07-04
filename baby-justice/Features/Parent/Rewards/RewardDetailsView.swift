@@ -125,7 +125,7 @@ struct RewardDetailsView: View {
                 Text(reward.name)
                     .font(.title2.bold())
                 HStack(spacing: BJSpacing.s) {
-                    StatusChip(text: reward.rewardType.displayName, color: .bjPrimaryDark)
+                    StatusChip(text: reward.rewardType.displayName, color: .bjAccent)
                     StatusChip(text: reward.status.displayName, color: statusColor(reward.status))
                 }
                 HStack(spacing: BJSpacing.s) {

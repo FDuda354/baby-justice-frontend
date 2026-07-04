@@ -11,7 +11,7 @@ struct SecondaryButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: BJSize.buttonHeight)
                 .background(Color.bjMint)
-                .foregroundStyle(Color.bjPrimaryDark)
+                .foregroundStyle(Color.bjAccent)
                 .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))
         }
     }

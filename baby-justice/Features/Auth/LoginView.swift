@@ -22,7 +22,7 @@ struct LoginView: View {
                 NavigationLink(value: AuthRoute.forgotPassword) {
                     Text("Nie pamiętam hasła")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.bjPrimaryDark)
+                        .foregroundStyle(Color.bjAccent)
                 }
                 .padding(.top, BJSpacing.s)
             }
