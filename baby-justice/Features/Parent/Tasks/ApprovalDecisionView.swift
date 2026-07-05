@@ -27,6 +27,7 @@ final class ApprovalDecisionViewModel {
         errorMessage = nil
         do {
             try await APIClient.shared.approveAssignment(assignmentId: assignment.id)
+            ParentBadgesStore.shared.refreshSoon()
             isApproving = false
             return true
         } catch {
@@ -41,6 +42,7 @@ final class ApprovalDecisionViewModel {
         errorMessage = nil
         do {
             try await APIClient.shared.rejectAssignment(assignmentId: assignment.id, reason: trimmedReason)
+            ParentBadgesStore.shared.refreshSoon()
             isRejecting = false
             return true
         } catch {

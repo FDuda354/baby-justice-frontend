@@ -45,11 +45,7 @@ struct RewardDetailView: View {
             }
             .padding(.bottom, BJSpacing.xl)
         }
-        .confirmationDialog(
-            "Kupić „\(reward.name)” za \(reward.costPoints) pkt?",
-            isPresented: $showPurchaseConfirmation,
-            titleVisibility: .visible
-        ) {
+        .alert("Kupić „\(reward.name)” za \(reward.costPoints) pkt?", isPresented: $showPurchaseConfirmation) {
             Button("Tak, kupuję!") {
                 Task { await purchase() }
             }

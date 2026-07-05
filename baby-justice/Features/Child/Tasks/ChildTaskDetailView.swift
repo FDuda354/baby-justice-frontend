@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ChildTaskDetailView: View {
-    let task: TaskDTO
+    let task: AvailableTaskDTO
     let viewModel: ChildTasksViewModel
 
     @Environment(\.dismiss) private var dismiss

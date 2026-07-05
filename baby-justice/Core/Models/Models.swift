@@ -221,6 +221,23 @@ struct TaskDetailsDTO: Codable, Hashable {
     let assignments: [TaskAssignmentDTO]
 }
 
+struct AvailableTaskDTO: Codable, Hashable, Identifiable {
+    let id: Int64
+    let name: String
+    let description: String
+    let points: Int
+    let availability: TaskAvailability
+    let recurrence: TaskRecurrence
+    let inProgressByName: String?
+
+    var isAcceptable: Bool { inProgressByName == nil }
+}
+
+struct ChildActivityDTO: Codable, Hashable {
+    let activeAssignments: [TaskAssignmentDTO]
+    let pendingDeliveries: [RewardPurchaseDTO]
+}
+
 struct RewardDTO: Codable, Hashable, Identifiable {
     let id: Int64
     let childId: Int64

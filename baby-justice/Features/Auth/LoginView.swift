@@ -8,7 +8,6 @@ struct LoginView: View {
             VStack(spacing: BJSpacing.l) {
                 header
                     .padding(.top, BJSpacing.xl)
-                AuthRolePicker(selectedRole: $viewModel.selectedRole)
                 VStack(spacing: BJSpacing.m) {
                     FormTextField(label: "E-mail", text: $viewModel.loginEmail, keyboard: .emailAddress)
                     FormTextField(label: "Hasło", text: $viewModel.loginPassword, secure: true)
@@ -35,20 +34,11 @@ struct LoginView: View {
         .onAppear { viewModel.clearError() }
     }
 
-    @ViewBuilder
     private var header: some View {
-        if viewModel.selectedRole == .parent {
-            AuthHeader(
-                icon: "person.crop.circle.badge.checkmark",
-                title: "Miło Cię znów widzieć",
-                subtitle: "Zaloguj się, aby zarządzać zadaniami i nagrodami swojej rodziny."
-            )
-        } else {
-            AuthHeader(
-                icon: "gamecontroller.fill",
-                title: "Hej, dobrze Cię widzieć!",
-                subtitle: "Wpisz swój e-mail i hasło — i ruszamy zbierać punkty."
-            )
-        }
+        AuthHeader(
+            icon: "person.crop.circle.badge.checkmark",
+            title: "Miło Cię znów widzieć",
+            subtitle: "Zaloguj się, aby wrócić do zadań i nagród swojej rodziny."
+        )
     }
 }

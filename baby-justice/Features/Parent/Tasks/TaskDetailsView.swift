@@ -25,11 +25,7 @@ struct TaskDetailsView: View {
                 }
             }
         }
-        .confirmationDialog(
-            "Czy na pewno anulować to zadanie?",
-            isPresented: $model.showCancelConfirmation,
-            titleVisibility: .visible
-        ) {
+        .alert("Czy na pewno anulować to zadanie?", isPresented: $model.showCancelConfirmation) {
             Button("Anuluj zadanie", role: .destructive) {
                 Task { await model.cancelTask() }
             }

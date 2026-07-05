@@ -6,8 +6,13 @@ final class ChildNotificationsViewModel {
     var notifications: [NotificationDTO] = []
     var isLoading = false
     var errorMessage: String?
+    private let loadFlight = SingleFlightTask()
 
     func load() async {
+        await loadFlight.run { await self.fetch() }
+    }
+
+    private func fetch() async {
         if notifications.isEmpty {
             isLoading = true
         }
@@ -26,5 +31,6 @@ final class ChildNotificationsViewModel {
     private func markAsReadIfNeeded() async {
         guard notifications.contains(where: { !$0.read }) else { return }
         try? await APIClient.shared.markChildNotificationsRead()
+        ChildBadgesStore.shared.refreshSoon()
     }
 }

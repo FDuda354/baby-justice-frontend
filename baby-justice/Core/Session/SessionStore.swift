@@ -50,6 +50,7 @@ final class SessionStore {
     }
 
     func logout() {
+        ImageCache.shared.removeAll()
         token = nil
         role = nil
         accountId = nil

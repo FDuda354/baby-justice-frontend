@@ -7,8 +7,13 @@ final class ChildrenListViewModel {
     var isLoading = false
     var errorMessage: String?
     var hasLoaded = false
+    private let loadFlight = SingleFlightTask()
 
     func load() async {
+        await loadFlight.run { await self.fetch() }
+    }
+
+    private func fetch() async {
         if !hasLoaded {
             isLoading = true
         }

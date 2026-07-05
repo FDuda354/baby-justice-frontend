@@ -37,11 +37,7 @@ struct ParentSettingsView: View {
                 }
             )
         }
-        .confirmationDialog(
-            "Czy na pewno chcesz się wylogować?",
-            isPresented: $showLogoutConfirmation,
-            titleVisibility: .visible
-        ) {
+        .alert("Czy na pewno chcesz się wylogować?", isPresented: $showLogoutConfirmation) {
             Button("Wyloguj się", role: .destructive) {
                 SessionStore.shared.logout()
             }
@@ -58,21 +54,8 @@ struct ParentSettingsView: View {
         Form {
             familySection
             accountSection
-            helpSection
             logoutSection
             deleteAccountSection
-        }
-    }
-
-    private var helpSection: some View {
-        Section {
-            NavigationLink {
-                HelpView()
-            } label: {
-                Label("Jak korzystać z aplikacji", systemImage: "questionmark.circle.fill")
-            }
-        } header: {
-            Text("Pomoc")
         }
     }
 

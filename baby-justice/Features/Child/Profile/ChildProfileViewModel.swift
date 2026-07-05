@@ -10,8 +10,13 @@ final class ChildProfileViewModel {
     var infoMessage: String?
     var isProcessingAvatar = false
     var avatarVersion = 0
+    private let loadFlight = SingleFlightTask()
 
     func load() async {
+        await loadFlight.run { await self.fetchProfile() }
+    }
+
+    private func fetchProfile() async {
         if profile == nil {
             isLoading = true
         }

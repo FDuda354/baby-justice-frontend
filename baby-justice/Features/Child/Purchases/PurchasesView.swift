@@ -35,6 +35,7 @@ final class PurchasesViewModel {
             if let index = purchases.firstIndex(where: { $0.id == updated.id }) {
                 purchases[index] = updated
             }
+            ChildBadgesStore.shared.refreshSoon()
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -90,9 +90,9 @@ Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes li
 ## 3. Business lifecycles
 
 ### Task availability (what a child sees under "available")
-A task is available to child C when: `task.status = ACTIVE`, and (`SHARED` or `ASSIGNED` with `assigned_child_id = C`), and:
-- `ONE_TIME`: no assignment exists in `IN_PROGRESS` or `PENDING_APPROVAL` (by anyone).
-- `REPEATABLE`: child C has no own assignment in `IN_PROGRESS` or `PENDING_APPROVAL`.
+A task is ACCEPTABLE by child C when: `task.status = ACTIVE`, and (`SHARED` or `ASSIGNED` with `assigned_child_id = C`), and NO assignment in `IN_PROGRESS` or `PENDING_APPROVAL` exists for it (by ANYONE — siblings never do the same task simultaneously, regardless of recurrence). Recurrence only decides what happens after approval: `ONE_TIME` closes (`COMPLETED`), `REPEATABLE` returns to the pool.
+
+The child pool still LISTS a task a sibling is currently doing — marked with `inProgressByName` (the sibling's name) and not acceptable (accept attempt → 409 `TaskNotAvailableException`).
 
 ### Task assignment flow
 - accept → new assignment `IN_PROGRESS` (validate availability atomically).
@@ -122,9 +122,8 @@ Single choke point — `PointsService` (see §6). Every balance change writes a 
 Stateless JWT, HS256 via `com.auth0:java-jwt:4.5.0`. Token TTL 30 days. Claims: `sub` = account id (string), `role` = `PARENT`|`CHILD`, `familyId` (long, PARENT tokens ONLY — child tokens carry no familyId claim; every child endpoint loads the `Child` entity by `principal.accountId` and derives the family from it, so attach/detach takes effect without re-login). Secret from `${JWT_SECRET:...long-dev-default...}`.
 
 - Parent registers with family name + own name + email + password.
-- Parent login: email + password.
 - Child registers itself: name + birth date + email + password; the response carries a generated child code the child gives to the parent.
-- Child login: email + password (works also before joining any family).
+- Login is UNIFIED (emails are unique across roles): a single endpoint resolves the account among parents first, then children, and returns `AuthResponse` with the role — the login screen has NO role toggle. Registration remains role-specific.
 - Emails are unique ACROSS parent_account and child: registering either account type with an email already used by the other type is a 409 (`DuplicateResourceException`).
 - Password reset (parent AND child): request by email — the account is looked up among parents first, then children; email with link/token via SMTP; token TTL 1h, single-use; confirm sets the new password on whichever account owns the token. Request endpoint always returns 204 (no account enumeration). Mail failures are logged, never break the flow (`@Async`).
 - Child password change: self-service in the app (current + new).
@@ -150,6 +149,8 @@ Images travel as base64 strings in JSON on upload, raw bytes (proper Content-Typ
 - `TaskDTO(Long id, String name, String description, int points, TaskAvailability availability, Long assignedChildId, String assignedChildName, TaskRecurrence recurrence, TaskStatus status, Instant createdAt)`
 - `TaskAssignmentDTO(Long id, Long taskId, String taskName, int points, Long childId, String childName, AssignmentStatus status, Instant acceptedAt, Instant completedAt, Instant resolvedAt, String rejectionReason)`
 - `TaskDetailsDTO(TaskDTO task, List<TaskAssignmentDTO> assignments)` (assignments newest first)
+- `AvailableTaskDTO(Long id, String name, String description, int points, TaskAvailability availability, TaskRecurrence recurrence, String inProgressByName)` (child pool; inProgressByName = sibling currently doing it, null when acceptable)
+- `ChildActivityDTO(List<TaskAssignmentDTO> activeAssignments, List<RewardPurchaseDTO> pendingDeliveries)` (parent's live view of one child: IN_PROGRESS + PENDING_APPROVAL assignments, PENDING_DELIVERY + DELIVERED purchases)
 - `RewardDTO(Long id, Long childId, String name, String description, int costPoints, RewardType rewardType, RewardStatus status, boolean hasImage, Instant createdAt)`
 - `RewardPurchaseDTO(Long id, Long rewardId, String rewardName, Long childId, String childName, int costPoints, PurchaseStatus status, boolean rewardHasImage, Instant purchasedAt, Instant deliveredAt, Instant receivedAt)`
 - `PointsTransactionDTO(Long id, Long childId, String childName, int delta, int balanceAfter, PointsTransactionType type, String description, Instant createdAt)`
@@ -165,9 +166,8 @@ Public (`/api/auth`):
 | Method | Path | Body → Response |
 |---|---|---|
 | POST | /api/auth/parent/register | `ParentRegisterRequest(String familyName, String parentName, String email, String password)` → `AuthResponse` (password min 8) |
-| POST | /api/auth/parent/login | `ParentLoginRequest(String email, String password)` → `AuthResponse` |
 | POST | /api/auth/child/register | `ChildRegisterRequest(String name, LocalDate birthDate, String email, String password)` → `AuthResponse` (email unique across parents+children, password min 4) |
-| POST | /api/auth/child/login | `ChildLoginRequest(String email, String password)` → `AuthResponse` |
+| POST | /api/auth/login | `LoginRequest(String email, String password)` → `AuthResponse` (parent looked up first, then child; 401 otherwise; replaces the removed /parent/login and /child/login) |
 | POST | /api/auth/password-reset/request | `PasswordResetRequest(String email)` → 204 |
 | POST | /api/auth/password-reset/confirm | `PasswordResetConfirmRequest(String token, String newPassword)` → 204 |
 
@@ -184,6 +184,7 @@ Parent zone (`/api/parent`, ROLE_PARENT):
 | GET | /children/{childId} | → `ChildDTO` |
 | DELETE | /children/{childId} | → 204 (detach from family per §3 Family membership) |
 | POST | /children/{childId}/points | `AdjustPointsRequest(int delta, String description)` → `ChildDTO` |
+| GET | /children/{childId}/activity | → `ChildActivityDTO` |
 | GET | /tasks?status={TaskStatus?} | → `List<TaskDTO>` (no param = all, newest first) |
 | POST | /tasks | `CreateTaskRequest(String name, String description, int points, TaskAvailability availability, Long assignedChildId, TaskRecurrence recurrence)` → `TaskDTO` |
 | GET | /tasks/{taskId} | → `TaskDetailsDTO` |
@@ -214,8 +215,8 @@ Child zone (`/api/child`, ROLE_CHILD):
 | POST | /account/delete | `DeleteAccountRequest(String password)` → 204 (401 wrong password; deletes the child account and its data) |
 | PUT | /avatar | `ImageUploadRequest(String imageBase64, String contentType)` → 204 |
 | DELETE | /avatar | → 204 |
-| GET | /tasks/available | → `List<TaskDTO>` |
-| POST | /tasks/{taskId}/accept | → `TaskAssignmentDTO` |
+| GET | /tasks/available | → `List<AvailableTaskDTO>` (includes tasks a sibling is doing, with inProgressByName set) |
+| POST | /tasks/{taskId}/accept | → `TaskAssignmentDTO` (409 when any active assignment exists) |
 | GET | /tasks/mine | → `List<TaskAssignmentDTO>` (IN_PROGRESS + PENDING_APPROVAL) |
 | POST | /assignments/{assignmentId}/complete | → `TaskAssignmentDTO` |
 | POST | /assignments/{assignmentId}/abandon | → 204 |
@@ -321,6 +322,10 @@ baby-justice/
 
 ### iOS conventions
 - View models: `@Observable` classes (`Observation` framework), owned by views via `@State`; async work with `.task {}` and `Task {}`; main-actor by default (project setting) — do not add `@MainActor` manually.
+- Confirmations ALWAYS use centered `.alert(...)` with a destructive/confirm button — NEVER `.confirmationDialog` (iOS 26 anchors it to the source view and it renders as a misplaced bubble).
+- Tab badges (red, via `.badge()`): parent — Zadania = pendingApprovalsCount, Nagrody = pendingDeliveriesCount, Więcej = unreadNotificationsCount; child — Sklep = deliveredPurchasesCount. Backed by a shared @Observable badge store per zone (refreshed on appear, tab change and after mutating actions).
+- Help (HelpView) entry points: parent — top-level row in ParentMoreView + quick link card on the dashboard; child — ChildProfileView row.
+- RemoteImageView caches downloaded images in an in-memory NSCache keyed by path (images are immutable per URL in practice).
 - iOS 17-compatible APIs ONLY: `NavigationStack`, `.tabItem` TabView style (NOT the iOS 18 `Tab` builder), `.onChange(of:) { old, new in }`, `PhotosPicker`, `.refreshable`, `.searchable`. No `@Query`/SwiftData, no UIKit.
 - All code and identifiers in English; ALL user-visible strings in Polish (hardcoded, no localization catalogs).
 - NO code comments. Small, well-named views and functions; extract subviews instead of nesting deeply.

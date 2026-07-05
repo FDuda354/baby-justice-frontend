@@ -33,6 +33,7 @@ struct ParentDashboardView: View {
                     familyHeader(dashboard)
                     statsRow(dashboard)
                     childrenSection(dashboard)
+                    helpQuickLink
                 }
                 .padding(.horizontal, BJSpacing.l)
             }
@@ -99,6 +100,28 @@ struct ParentDashboardView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    private var helpQuickLink: some View {
+        NavigationLink {
+            HelpView()
+        } label: {
+            HStack(spacing: BJSpacing.s) {
+                Image(systemName: "questionmark.circle.fill")
+                    .foregroundStyle(Color.bjPrimary)
+                Text("Jak korzystać z aplikacji")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(BJSpacing.m)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: BJRadius.card, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private func childCard(_ child: ChildSummaryDTO) -> some View {

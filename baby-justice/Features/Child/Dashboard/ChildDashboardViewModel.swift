@@ -22,7 +22,13 @@ final class ChildDashboardViewModel {
         await fetch()
     }
 
+    private let loadFlight = SingleFlightTask()
+
     private func fetch() async {
+        await loadFlight.run { await self.fetchDashboard() }
+    }
+
+    private func fetchDashboard() async {
         do {
             dashboard = try await APIClient.shared.childDashboard()
             errorMessage = nil

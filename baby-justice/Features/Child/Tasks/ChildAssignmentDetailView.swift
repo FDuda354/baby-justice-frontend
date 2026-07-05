@@ -31,7 +31,7 @@ struct ChildAssignmentDetailView: View {
         } message: {
             Text("Rodzic sprawdzi zadanie i przyzna Ci punkty.")
         }
-        .confirmationDialog("Na pewno rezygnujesz?", isPresented: $showAbandonDialog, titleVisibility: .visible) {
+        .alert("Na pewno rezygnujesz?", isPresented: $showAbandonDialog) {
             Button("Rezygnuję z zadania", role: .destructive) {
                 Task { await abandon() }
             }

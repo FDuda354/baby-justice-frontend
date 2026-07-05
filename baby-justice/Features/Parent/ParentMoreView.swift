@@ -21,6 +21,11 @@ struct ParentMoreView: View {
                 } label: {
                     Label("Ustawienia", systemImage: "gearshape.fill")
                 }
+                NavigationLink {
+                    HelpView()
+                } label: {
+                    Label("Jak korzystać z aplikacji", systemImage: "questionmark.circle.fill")
+                }
             }
 
             Section {
@@ -32,11 +37,7 @@ struct ParentMoreView: View {
             }
         }
         .navigationTitle("Więcej")
-        .confirmationDialog(
-            "Czy na pewno chcesz się wylogować?",
-            isPresented: $showLogoutConfirmation,
-            titleVisibility: .visible
-        ) {
+        .alert("Czy na pewno chcesz się wylogować?", isPresented: $showLogoutConfirmation) {
             Button("Wyloguj się", role: .destructive) {
                 SessionStore.shared.logout()
             }

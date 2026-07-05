@@ -40,11 +40,7 @@ struct ChildProfileView: View {
                 }
             )
         }
-        .confirmationDialog(
-            "Czy na pewno chcesz się wylogować?",
-            isPresented: $showingLogoutConfirmation,
-            titleVisibility: .visible
-        ) {
+        .alert("Czy na pewno chcesz się wylogować?", isPresented: $showingLogoutConfirmation) {
             Button("Wyloguj się", role: .destructive) {
                 SessionStore.shared.logout()
             }

@@ -7,7 +7,7 @@ struct ParentRegisterRequest: Encodable {
     let password: String
 }
 
-struct ParentLoginRequest: Encodable {
+struct LoginRequest: Encodable {
     let email: String
     let password: String
 }
@@ -15,11 +15,6 @@ struct ParentLoginRequest: Encodable {
 struct ChildRegisterRequest: Encodable {
     let name: String
     let birthDate: String
-    let email: String
-    let password: String
-}
-
-struct ChildLoginRequest: Encodable {
     let email: String
     let password: String
 }
@@ -97,8 +92,8 @@ final class APIClient {
         encoder.dateEncodingStrategy = .iso8601
     }
 
-    func loginParent(email: String, password: String) async throws -> AuthResponse {
-        try await request(method: "POST", path: "/api/auth/parent/login", body: ParentLoginRequest(email: email, password: password))
+    func login(email: String, password: String) async throws -> AuthResponse {
+        try await request(method: "POST", path: "/api/auth/login", body: LoginRequest(email: email, password: password))
     }
 
     func registerParent(familyName: String, parentName: String, email: String, password: String) async throws -> AuthResponse {
@@ -107,10 +102,6 @@ final class APIClient {
 
     func registerChild(name: String, birthDate: String, email: String, password: String) async throws -> AuthResponse {
         try await request(method: "POST", path: "/api/auth/child/register", body: ChildRegisterRequest(name: name, birthDate: birthDate, email: email, password: password))
-    }
-
-    func loginChild(email: String, password: String) async throws -> AuthResponse {
-        try await request(method: "POST", path: "/api/auth/child/login", body: ChildLoginRequest(email: email, password: password))
     }
 
     func requestPasswordReset(email: String) async throws {
@@ -161,6 +152,10 @@ final class APIClient {
         try await request(method: "POST", path: "/api/parent/children/\(childId)/points", body: AdjustPointsRequest(delta: delta, description: description))
     }
 
+    func childActivity(childId: Int64) async throws -> ChildActivityDTO {
+        try await request(method: "GET", path: "/api/parent/children/\(childId)/activity")
+    }
+
     func parentTasks(status: TaskStatus? = nil) async throws -> [TaskDTO] {
         let query = status.map { [URLQueryItem(name: "status", value: $0.rawValue)] } ?? []
         return try await request(method: "GET", path: "/api/parent/tasks", query: query)
@@ -208,7 +203,9 @@ final class APIClient {
     }
 
     func updateReward(rewardId: Int64, _ body: CreateRewardRequest) async throws -> RewardDTO {
-        try await request(method: "PUT", path: "/api/parent/rewards/\(rewardId)", body: body)
+        let updated: RewardDTO = try await request(method: "PUT", path: "/api/parent/rewards/\(rewardId)", body: body)
+        ImageCache.shared.removeImage(for: "/api/images/rewards/\(rewardId)")
+        return updated
     }
 
     func archiveReward(rewardId: Int64) async throws {
@@ -261,13 +258,20 @@ final class APIClient {
 
     func uploadChildAvatar(base64: String, contentType: String) async throws {
         try await requestVoid(method: "PUT", path: "/api/child/avatar", body: ImageUploadRequest(imageBase64: base64, contentType: contentType))
+        invalidateOwnAvatarImage()
     }
 
     func deleteChildAvatar() async throws {
         try await requestVoid(method: "DELETE", path: "/api/child/avatar")
+        invalidateOwnAvatarImage()
     }
 
-    func availableTasks() async throws -> [TaskDTO] {
+    private func invalidateOwnAvatarImage() {
+        guard let childId = SessionStore.shared.accountId else { return }
+        ImageCache.shared.removeImage(for: "/api/images/children/\(childId)/avatar")
+    }
+
+    func availableTasks() async throws -> [AvailableTaskDTO] {
         try await request(method: "GET", path: "/api/child/tasks/available")
     }
 

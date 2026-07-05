@@ -41,7 +41,7 @@ final class AuthViewModel {
             return
         }
         await run(invalidCredentialsMessage: "Nieprawidłowy e-mail lub hasło.") {
-            let auth = try await self.authenticate(email: email, password: self.loginPassword)
+            let auth = try await APIClient.shared.login(email: email, password: self.loginPassword)
             SessionStore.shared.startSession(auth)
         }
     }
@@ -68,13 +68,6 @@ final class AuthViewModel {
         await run(invalidCredentialsMessage: nil) {
             try await APIClient.shared.requestPasswordReset(email: email)
             self.resetRequestSent = true
-        }
-    }
-
-    private func authenticate(email: String, password: String) async throws -> AuthResponse {
-        switch selectedRole {
-        case .parent: try await APIClient.shared.loginParent(email: email, password: password)
-        case .child: try await APIClient.shared.loginChild(email: email, password: password)
         }
     }
 
@@ -146,7 +139,6 @@ final class AuthViewModel {
     private func handleRoleChange(from oldRole: Role) {
         guard oldRole != selectedRole else { return }
         errorMessage = nil
-        loginPassword = ""
         registerPassword = ""
         registerPasswordRepeat = ""
     }

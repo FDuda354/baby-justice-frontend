@@ -18,7 +18,7 @@ enum ChildTasksSegment: String, CaseIterable, Identifiable {
 @Observable
 final class ChildTasksViewModel {
     var segment: ChildTasksSegment = .available
-    var availableTasks: [TaskDTO] = []
+    var availableTasks: [AvailableTaskDTO] = []
     var myTasks: [TaskAssignmentDTO] = []
     var isLoading = false
     var errorMessage: String?
@@ -26,6 +26,7 @@ final class ChildTasksViewModel {
     var isPerformingAction = false
 
     private var hasLoaded = false
+    private let loadFlight = SingleFlightTask()
 
     func loadIfNeeded() async {
         guard !hasLoaded else { return }
@@ -33,11 +34,17 @@ final class ChildTasksViewModel {
     }
 
     func load() async {
+        await loadFlight.run { await self.fetchAll() }
+    }
+
+    private func fetchAll() async {
         isLoading = !hasLoaded
         errorMessage = nil
         do {
-            availableTasks = try await APIClient.shared.availableTasks()
-            myTasks = try await APIClient.shared.myTasks()
+            async let availableCall = APIClient.shared.availableTasks()
+            async let mineCall = APIClient.shared.myTasks()
+            availableTasks = try await availableCall
+            myTasks = try await mineCall
             hasLoaded = true
         } catch {
             errorMessage = error.localizedDescription
@@ -45,7 +52,7 @@ final class ChildTasksViewModel {
         isLoading = false
     }
 
-    func accept(_ task: TaskDTO) async -> Bool {
+    func accept(_ task: AvailableTaskDTO) async -> Bool {
         isPerformingAction = true
         defer { isPerformingAction = false }
         do {
@@ -55,10 +62,17 @@ final class ChildTasksViewModel {
             segment = .mine
             return true
         } catch {
-            actionErrorMessage = error.localizedDescription
+            actionErrorMessage = acceptFailureMessage(for: error)
             await refreshQuietly()
             return false
         }
+    }
+
+    private func acceptFailureMessage(for error: Error) -> String {
+        if case APIError.server(_, let status) = error, status == 409 {
+            return "Ktoś już wziął to zadanie."
+        }
+        return error.localizedDescription
     }
 
     func complete(_ assignment: TaskAssignmentDTO) async -> Bool {
@@ -93,10 +107,12 @@ final class ChildTasksViewModel {
     }
 
     private func refreshQuietly() async {
-        if let tasks = try? await APIClient.shared.availableTasks() {
+        async let availableCall = APIClient.shared.availableTasks()
+        async let mineCall = APIClient.shared.myTasks()
+        if let tasks = try? await availableCall {
             availableTasks = tasks
         }
-        if let assignments = try? await APIClient.shared.myTasks() {
+        if let assignments = try? await mineCall {
             myTasks = assignments
         }
     }

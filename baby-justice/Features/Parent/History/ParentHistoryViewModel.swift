@@ -36,8 +36,10 @@ final class ParentHistoryViewModel {
     }
 
     func loadInitial() async {
-        await loadChildren()
-        await loadCurrentSegment()
+        async let childrenLoad: Void = loadChildren()
+        async let segmentLoad: Void = loadCurrentSegment()
+        await childrenLoad
+        await segmentLoad
     }
 
     func loadCurrentSegment() async {

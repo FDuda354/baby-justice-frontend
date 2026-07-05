@@ -34,6 +34,7 @@ final class DeliveriesViewModel {
         deliveries.removeAll { $0.id == purchase.id }
         do {
             try await APIClient.shared.markDelivered(purchaseId: purchase.id)
+            ParentBadgesStore.shared.refreshSoon()
         } catch {
             actionErrorMessage = error.localizedDescription
             await load()

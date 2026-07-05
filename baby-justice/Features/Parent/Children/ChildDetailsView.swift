@@ -26,7 +26,7 @@ struct ChildDetailsView: View {
                 }
             }
         }
-        .confirmationDialog("Usunąć z rodziny?", isPresented: $showingDetachConfirmation, titleVisibility: .visible) {
+        .alert("Usunąć z rodziny?", isPresented: $showingDetachConfirmation) {
             Button("Usuń z rodziny", role: .destructive) {
                 Task {
                     if await viewModel.detachChild() {
@@ -61,6 +61,7 @@ struct ChildDetailsView: View {
                 }
                 VStack(spacing: BJSpacing.l) {
                     profileHeader(child)
+                    activitySection
                     actionFeedback
                     actionsCard
                 }
@@ -94,6 +95,30 @@ struct ChildDetailsView: View {
                     .font(.title3)
             }
             .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var activitySection: some View {
+        if let activity = viewModel.activity {
+            VStack(alignment: .leading, spacing: BJSpacing.m) {
+                SectionHeader(title: "W trakcie")
+                if activity.activeAssignments.isEmpty && activity.pendingDeliveries.isEmpty {
+                    CardView {
+                        Text("Na ten moment nic się tu nie dzieje — żadnych zadań w toku ani nagród do wydania.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    ForEach(activity.activeAssignments) { assignment in
+                        ActiveAssignmentRow(assignment: assignment)
+                    }
+                    ForEach(activity.pendingDeliveries) { purchase in
+                        ActivePurchaseRow(purchase: purchase)
+                    }
+                }
+            }
         }
     }
 
@@ -139,5 +164,43 @@ struct ChildDetailsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct ActiveAssignmentRow: View {
+    let assignment: TaskAssignmentDTO
+
+    var body: some View {
+        CardView {
+            HStack(alignment: .top, spacing: BJSpacing.m) {
+                VStack(alignment: .leading, spacing: BJSpacing.xs) {
+                    Text(assignment.taskName)
+                        .font(.subheadline.weight(.semibold))
+                        .multilineTextAlignment(.leading)
+                    StatusChip(text: assignment.status.displayName, color: assignment.status == .inProgress ? .blue : .bjAmber)
+                }
+                Spacer()
+                PointsBadge(points: assignment.points)
+            }
+        }
+    }
+}
+
+private struct ActivePurchaseRow: View {
+    let purchase: RewardPurchaseDTO
+
+    var body: some View {
+        CardView {
+            HStack(alignment: .top, spacing: BJSpacing.m) {
+                VStack(alignment: .leading, spacing: BJSpacing.xs) {
+                    Text(purchase.rewardName)
+                        .font(.subheadline.weight(.semibold))
+                        .multilineTextAlignment(.leading)
+                    StatusChip(text: purchase.status.displayName, color: purchase.status == .pendingDelivery ? .bjAmber : .blue)
+                }
+                Spacer()
+                PointsBadge(points: purchase.costPoints)
+            }
+        }
     }
 }

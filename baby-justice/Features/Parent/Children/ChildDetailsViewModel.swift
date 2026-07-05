@@ -6,6 +6,7 @@ final class ChildDetailsViewModel {
     let childId: Int64
 
     var child: ChildDTO?
+    var activity: ChildActivityDTO?
     var isLoading = false
     var errorMessage: String?
     var actionError: String?
@@ -20,7 +21,10 @@ final class ChildDetailsViewModel {
             isLoading = true
         }
         do {
-            child = try await APIClient.shared.child(childId: childId)
+            async let childCall = APIClient.shared.child(childId: childId)
+            async let activityCall = APIClient.shared.childActivity(childId: childId)
+            child = try await childCall
+            activity = try await activityCall
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription

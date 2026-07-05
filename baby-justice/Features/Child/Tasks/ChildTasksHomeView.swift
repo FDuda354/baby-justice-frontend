@@ -17,7 +17,7 @@ struct ChildTasksHomeView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Zadania")
-        .navigationDestination(for: TaskDTO.self) { task in
+        .navigationDestination(for: AvailableTaskDTO.self) { task in
             ChildTaskDetailView(task: task, viewModel: viewModel)
         }
         .navigationDestination(for: TaskAssignmentDTO.self) { assignment in
@@ -63,10 +63,14 @@ struct ChildTasksHomeView: View {
             )
         } else {
             ForEach(viewModel.availableTasks) { task in
-                NavigationLink(value: task) {
+                if task.isAcceptable {
+                    NavigationLink(value: task) {
+                        AvailableTaskRow(task: task)
+                    }
+                    .buttonStyle(.plain)
+                } else {
                     AvailableTaskRow(task: task)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -95,7 +99,7 @@ struct ChildTasksHomeView: View {
 }
 
 private struct AvailableTaskRow: View {
-    let task: TaskDTO
+    let task: AvailableTaskDTO
 
     var body: some View {
         CardView {
@@ -114,19 +118,26 @@ private struct AvailableTaskRow: View {
                         .lineLimit(2)
                 }
                 HStack(spacing: BJSpacing.s) {
-                    if task.availability == .shared {
-                        StatusChip(text: "Wspólne", color: .indigo)
-                    }
-                    if task.recurrence == .repeatable {
-                        StatusChip(text: "Powtarzalne", color: .teal)
+                    if let siblingName = task.inProgressByName {
+                        StatusChip(text: "Realizowane przez \(siblingName)", color: .bjAmber)
+                    } else {
+                        if task.availability == .shared {
+                            StatusChip(text: "Wspólne", color: .indigo)
+                        }
+                        if task.recurrence == .repeatable {
+                            StatusChip(text: "Powtarzalne", color: .teal)
+                        }
                     }
                     Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.tertiary)
+                    if task.isAcceptable {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
         }
+        .opacity(task.isAcceptable ? 1 : 0.55)
     }
 }
 

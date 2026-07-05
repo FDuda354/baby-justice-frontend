@@ -49,18 +49,18 @@ struct RewardDetailsView: View {
 
     var body: some View {
         Group {
-            if viewModel.isLoading && viewModel.reward == nil {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let errorMessage = viewModel.errorMessage, viewModel.reward == nil {
+            if let reward = viewModel.reward {
+                detailsContent(reward)
+            } else if let errorMessage = viewModel.errorMessage {
                 ErrorBanner(message: errorMessage) {
                     Task {
                         await viewModel.load()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let reward = viewModel.reward {
-                detailsContent(reward)
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .background(Color(.systemGroupedBackground))
@@ -76,7 +76,7 @@ struct RewardDetailsView: View {
                 }
             }
         }
-        .confirmationDialog("Zarchiwizować nagrodę?", isPresented: $showsArchiveConfirmation, titleVisibility: .visible) {
+        .alert("Zarchiwizować nagrodę?", isPresented: $showsArchiveConfirmation) {
             Button("Archiwizuj", role: .destructive) {
                 Task {
                     await viewModel.archive()

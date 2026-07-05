@@ -27,8 +27,10 @@ final class ParentRewardsHomeViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            children = try await APIClient.shared.children()
-            deliveriesCount = try await APIClient.shared.deliveries().count
+            async let childrenCall = APIClient.shared.children()
+            async let deliveriesCall = APIClient.shared.deliveries()
+            children = try await childrenCall
+            deliveriesCount = try await deliveriesCall.count
             hasLoadedOnce = true
             clearSelectionIfChildRemoved()
             await loadRewards()
@@ -40,11 +42,13 @@ final class ParentRewardsHomeViewModel {
 
     func refreshSilently() async {
         guard hasLoadedOnce else { return }
-        if let freshChildren = try? await APIClient.shared.children() {
+        async let childrenCall = APIClient.shared.children()
+        async let deliveriesCall = APIClient.shared.deliveries()
+        if let freshChildren = try? await childrenCall {
             children = freshChildren
             clearSelectionIfChildRemoved()
         }
-        if let freshDeliveries = try? await APIClient.shared.deliveries() {
+        if let freshDeliveries = try? await deliveriesCall {
             deliveriesCount = freshDeliveries.count
         }
         await loadRewards()
