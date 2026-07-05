@@ -198,7 +198,11 @@ private struct ChangePasswordSheet: View {
             try await APIClient.shared.changeParentPassword(currentPassword: currentPassword, newPassword: newPassword)
             dismiss()
         } catch {
-            errorMessage = error.localizedDescription
+            if case APIError.invalidPassword = error {
+                errorMessage = "Obecne hasło jest nieprawidłowe."
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
         isSaving = false
     }

@@ -75,6 +75,7 @@ struct CreateRewardRequest: Encodable {
     let rewardType: RewardType
     let imageBase64: String?
     let imageContentType: String?
+    let removeImage: Bool?
 }
 
 final class APIClient {
@@ -125,11 +126,11 @@ final class APIClient {
     }
 
     func changeParentPassword(currentPassword: String, newPassword: String) async throws {
-        try await requestVoid(method: "PUT", path: "/api/parent/account/password", body: ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword))
+        try await requestVoid(method: "PUT", path: "/api/parent/account/password", body: ChangePasswordRequest(currentPassword: currentPassword, newPassword: newPassword), passwordVerifying: true)
     }
 
     func deleteParentAccount(password: String) async throws {
-        try await requestVoid(method: "POST", path: "/api/parent/account/delete", body: DeleteAccountRequest(password: password))
+        try await requestVoid(method: "POST", path: "/api/parent/account/delete", body: DeleteAccountRequest(password: password), passwordVerifying: true)
     }
 
     func children() async throws -> [ChildDTO] {
@@ -249,11 +250,11 @@ final class APIClient {
     }
 
     func changeChildPassword(current: String, new: String) async throws {
-        try await requestVoid(method: "PUT", path: "/api/child/account/password", body: ChangePasswordRequest(currentPassword: current, newPassword: new))
+        try await requestVoid(method: "PUT", path: "/api/child/account/password", body: ChangePasswordRequest(currentPassword: current, newPassword: new), passwordVerifying: true)
     }
 
     func deleteChildAccount(password: String) async throws {
-        try await requestVoid(method: "POST", path: "/api/child/account/delete", body: DeleteAccountRequest(password: password))
+        try await requestVoid(method: "POST", path: "/api/child/account/delete", body: DeleteAccountRequest(password: password), passwordVerifying: true)
     }
 
     func uploadChildAvatar(base64: String, contentType: String) async throws {
@@ -338,8 +339,8 @@ final class APIClient {
         childId.map { [URLQueryItem(name: "childId", value: String($0))] } ?? []
     }
 
-    private func request<T: Decodable>(method: String, path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil) async throws -> T {
-        let data = try await perform(method: method, path: path, query: query, body: body)
+    private func request<T: Decodable>(method: String, path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil, passwordVerifying: Bool = false) async throws -> T {
+        let data = try await perform(method: method, path: path, query: query, body: body, passwordVerifying: passwordVerifying)
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -347,15 +348,15 @@ final class APIClient {
         }
     }
 
-    private func requestVoid(method: String, path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil) async throws {
-        _ = try await perform(method: method, path: path, query: query, body: body)
+    private func requestVoid(method: String, path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil, passwordVerifying: Bool = false) async throws {
+        _ = try await perform(method: method, path: path, query: query, body: body, passwordVerifying: passwordVerifying)
     }
 
-    private func perform(method: String, path: String, query: [URLQueryItem], body: (any Encodable)?) async throws -> Data {
+    private func perform(method: String, path: String, query: [URLQueryItem], body: (any Encodable)?, passwordVerifying: Bool) async throws -> Data {
         let url = try makeURL(path: path, query: query)
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = method
-        attachAuthorization(to: &urlRequest)
+        let isAuthenticated = attachAuthorization(to: &urlRequest)
         if let body {
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
             do {
@@ -375,13 +376,19 @@ final class APIClient {
             throw APIError.network
         }
         guard (200...299).contains(http.statusCode) else {
-            throw errorForFailure(status: http.statusCode, data: data)
+            throw errorForFailure(status: http.statusCode, data: data, passwordVerifying: passwordVerifying, isAuthenticated: isAuthenticated)
         }
         return data
     }
 
-    private func errorForFailure(status: Int, data: Data) -> APIError {
+    private func errorForFailure(status: Int, data: Data, passwordVerifying: Bool, isAuthenticated: Bool) -> APIError {
         if status == 401 {
+            if passwordVerifying {
+                return .invalidPassword
+            }
+            if isAuthenticated {
+                SessionStore.shared.logout()
+            }
             return .unauthorized
         }
         if let body = try? decoder.decode(ApiErrorBody.self, from: data) {
@@ -404,8 +411,10 @@ final class APIClient {
         return url
     }
 
-    private func attachAuthorization(to urlRequest: inout URLRequest) {
-        guard let token = SessionStore.shared.token else { return }
+    @discardableResult
+    private func attachAuthorization(to urlRequest: inout URLRequest) -> Bool {
+        guard let token = SessionStore.shared.token else { return false }
         urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return true
     }
 }

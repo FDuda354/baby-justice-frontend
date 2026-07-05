@@ -24,6 +24,9 @@ struct ChildTasksHomeView: View {
             ChildAssignmentDetailView(assignment: assignment, viewModel: viewModel)
         }
         .task { await viewModel.loadIfNeeded() }
+        .onAppear {
+            Task { await viewModel.reloadOnAppear() }
+        }
     }
 
     @ViewBuilder

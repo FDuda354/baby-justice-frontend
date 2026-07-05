@@ -13,7 +13,7 @@ struct AddChildByCodeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: BJSpacing.l) {
                     codeField
-                    Text("Dziecko najpierw zakłada własne konto w aplikacji (na ekranie startowym wybiera „Załóż konto dziecka”) i dostaje swój kod dziecka. Wpisz ten kod powyżej, aby dodać je do rodziny.")
+                    Text("Dziecko najpierw zakłada własne konto w aplikacji (na ekranie startowym wybiera „Zarejestruj się”, a potem rolę „Dziecko”) i dostaje swój kod dziecka. Wpisz ten kod powyżej, aby dodać je do rodziny.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if let errorMessage {

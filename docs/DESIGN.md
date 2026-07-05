@@ -10,9 +10,9 @@ Roles: `PARENT`, `CHILD`. The child zone and the parent zone are strictly separa
 
 ## 2. Domain model (PostgreSQL, Flyway `V1__Create_schema.sql`)
 
-Conventions: per-entity sequence `{table}_id_sequence`, `BIGINT` ids, lowercase snake_case, Polish `COMMENT ON COLUMN` comments, `TIMESTAMPTZ` for timestamps, FK indexes. All FKs to `family`/`child` use `ON DELETE CASCADE`.
+Conventions: per-entity sequence `{table}_id_sequence`, `BIGINT` ids, lowercase snake_case, Polish `COMMENT ON COLUMN` comments, `TIMESTAMPTZ` for timestamps, FK indexes. Most FKs to `family`/`child` use `ON DELETE CASCADE`; the two exceptions are `child.family_id` and `task.assigned_child_id`, both `ON DELETE SET NULL` (see V4/V5).
 
-Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes live in `V2__Child_code_onboarding.sql`; `V3__Child_email_login.sql` renames child.login to email (VARCHAR(150)) and extends password_reset_token to child accounts; `V4__Account_deletion.sql` changes the child.family_id FK to ON DELETE SET NULL (deleting a family must detach children, never delete their accounts). The tables below describe the FINAL state after V4.
+Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes live in `V2__Child_code_onboarding.sql`; `V3__Child_email_login.sql` renames child.login to email (VARCHAR(150)) and extends password_reset_token to child accounts; `V4__Account_deletion.sql` changes the child.family_id FK to ON DELETE SET NULL (deleting a family must detach children, never delete their accounts); `V5__Task_keeps_assigned_child_history.sql` changes the task.assigned_child_id FK to ON DELETE SET NULL (a child deleting their account must NOT delete the family's assigned tasks — an ASSIGNED task with a null assigned child is effectively unavailable: the parent list shows it without a child name and the parent can edit/cancel it, children never see it); `V6__Points_transaction_family.sql` adds points_transaction.family_id (ON DELETE SET NULL) so parent history is scoped to the family in which each transaction happened, never leaking a re-attached child's previous-family history. The tables below describe the FINAL state after V6.
 
 ### family
 - id, name VARCHAR(100) NOT NULL
@@ -64,11 +64,12 @@ Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes li
 ### reward_purchase
 - id, reward_id FK NOT NULL, child_id FK NOT NULL
 - reward_name VARCHAR(150) NOT NULL (snapshot), cost_points INTEGER NOT NULL (snapshot)
-- status VARCHAR(20) NOT NULL — enum `PurchaseStatus`: `PENDING_DELIVERY` | `DELIVERED` | `RECEIVED`
+- status VARCHAR(20) NOT NULL — enum `PurchaseStatus`: `PENDING_DELIVERY` | `DELIVERED` | `RECEIVED` | `CANCELLED` (`CANCELLED` is terminal — set when the buyer is detached from the family while the purchase was still `PENDING_DELIVERY`; the points are refunded)
 - purchased_at TIMESTAMPTZ NOT NULL, delivered_at TIMESTAMPTZ NULL, received_at TIMESTAMPTZ NULL
 
 ### points_transaction
 - id, child_id FK NOT NULL
+- family_id FK NULL (ON DELETE SET NULL) — the family the transaction happened in (V6); parent history filters by this, not by the child's current family
 - delta INTEGER NOT NULL (positive or negative), balance_after INTEGER NOT NULL
 - type VARCHAR(30) NOT NULL — enum `PointsTransactionType`: `TASK_REWARD` | `MANUAL_ADJUSTMENT` | `PURCHASE`
 - description VARCHAR(300) NOT NULL
@@ -111,8 +112,13 @@ The child pool still LISTS a task a sibling is currently doing — marked with `
 
 ### Family membership
 - attach (parent): by child code — 404 unknown code, 409 (`DuplicateResourceException`) when the child already belongs to a family; child is notified (`CHILD_JOINED`, Polish message with the family name).
-- detach (parent): child.family becomes null; the child account, its points balance and all history SURVIVE; the child's `IN_PROGRESS`/`PENDING_APPROVAL` assignments become `ABANDONED`; child is notified (`CHILD_REMOVED`) before detaching.
-- A family-less child can log in, see the dashboard (hasFamily false, child code, zeroed counts), manage the account; task/shop/purchase lists are empty and accept/purchase are impossible naturally.
+- detach (parent): child.family becomes null; the child account, its points balance and all history SURVIVE; the child is notified (`CHILD_REMOVED`) before detaching, and nothing the child owned follows them into a future family. On detach:
+  - the child's `IN_PROGRESS`/`PENDING_APPROVAL` assignments become `ABANDONED`;
+  - the child's `ACTIVE` `ASSIGNED` tasks become `CANCELLED` (their `assigned_child_id` is otherwise dangling);
+  - the child's `ACTIVE` rewards become `ARCHIVED` (so the shop does not reappear in a new family and purchase notifications do not go to the old parent);
+  - the child's `PENDING_DELIVERY` purchases become `CANCELLED`, their points are refunded via `PointsService.credit`, and the child is notified;
+  - the child's `DELIVERED` purchases are left intact and remain workable via child endpoints — a detached child can still confirm receipt (no parent notification is sent when the child has no family).
+- A family-less child can log in, see the dashboard (hasFamily false, child code, zeroed counts), manage the account, and confirm receipt of any still-`DELIVERED` purchase; task/shop lists are empty and accept/purchase are impossible naturally.
 
 ### Points
 Single choke point — `PointsService` (see §6). Every balance change writes a `points_transaction` row with `balance_after`. Manual adjustment by parent: any delta; resulting balance below zero → 400. Child is notified (`POINTS_ADJUSTED`).
@@ -194,7 +200,7 @@ Parent zone (`/api/parent`, ROLE_PARENT):
 | POST | /approvals/{assignmentId}/approve | → 204 |
 | POST | /approvals/{assignmentId}/reject | `RejectAssignmentRequest(String reason)` → 204 |
 | GET | /children/{childId}/rewards?includeArchived={bool=false} | → `List<RewardDTO>` |
-| POST | /children/{childId}/rewards | `CreateRewardRequest(String name, String description, int costPoints, RewardType rewardType, String imageBase64, String imageContentType)` (image nullable) → `RewardDTO` |
+| POST | /children/{childId}/rewards | `CreateRewardRequest(String name, String description, int costPoints, RewardType rewardType, String imageBase64, String imageContentType, Boolean removeImage)` (image nullable; on update `removeImage=true` with no new image clears the existing photo) → `RewardDTO` |
 | GET | /rewards/{rewardId} | → `RewardDTO` |
 | PUT | /rewards/{rewardId} | `CreateRewardRequest` → `RewardDTO` |
 | POST | /rewards/{rewardId}/archive | → 204 |

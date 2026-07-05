@@ -41,6 +41,7 @@ final class TaskDetailsViewModel {
         isCancelling = true
         do {
             try await APIClient.shared.cancelTask(taskId: taskId)
+            ParentBadgesStore.shared.refreshSoon()
             await load(showLoading: false)
         } catch {
             cancelErrorMessage = error.localizedDescription

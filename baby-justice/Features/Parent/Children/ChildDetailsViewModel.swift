@@ -37,6 +37,7 @@ final class ChildDetailsViewModel {
         isDetaching = true
         do {
             try await APIClient.shared.detachChild(childId: childId)
+            ParentBadgesStore.shared.refreshSoon()
             isDetaching = false
             return true
         } catch {

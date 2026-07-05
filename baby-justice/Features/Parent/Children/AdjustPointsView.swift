@@ -7,6 +7,7 @@ struct AdjustPointsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var direction: AdjustDirection = .add
     @State private var amount = 10
+    @State private var amountText = "10"
     @State private var reason = ""
     @State private var errorMessage: String?
     @State private var isSaving = false
@@ -52,6 +53,27 @@ struct AdjustPointsView: View {
         direction == .add ? amount : -amount
     }
 
+    private var amountTextBinding: Binding<String> {
+        Binding(
+            get: { amountText },
+            set: { newValue in
+                let digits = String(newValue.filter(\.isNumber).prefix(6))
+                amountText = digits
+                amount = Int(digits) ?? 0
+            }
+        )
+    }
+
+    private var amountStepperBinding: Binding<Int> {
+        Binding(
+            get: { amount },
+            set: { newValue in
+                amount = newValue
+                amountText = String(newValue)
+            }
+        )
+    }
+
     private var resultingBalance: Int {
         child.pointsBalance + delta
     }
@@ -62,7 +84,7 @@ struct AdjustPointsView: View {
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(.secondary)
             HStack(spacing: BJSpacing.m) {
-                TextField("0", value: $amount, format: .number)
+                TextField("0", text: amountTextBinding)
                     .keyboardType(.numberPad)
                     .font(.title3.bold())
                     .padding(.horizontal, BJSpacing.m)
@@ -73,7 +95,7 @@ struct AdjustPointsView: View {
                         RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous)
                             .strokeBorder(Color.bjPrimary.opacity(0.2), lineWidth: 1)
                     )
-                Stepper("Liczba punktów", value: $amount, in: 1...100000)
+                Stepper("Liczba punktów", value: amountStepperBinding, in: 1...100000)
                     .labelsHidden()
             }
         }

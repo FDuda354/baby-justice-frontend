@@ -96,7 +96,7 @@ struct DeleteAccountSheet: View {
     }
 
     private func deletionErrorMessage(for error: Error) -> String {
-        if case APIError.unauthorized = error {
+        if case APIError.invalidPassword = error {
             return "Nieprawidłowe hasło. Spróbuj ponownie."
         }
         return error.localizedDescription

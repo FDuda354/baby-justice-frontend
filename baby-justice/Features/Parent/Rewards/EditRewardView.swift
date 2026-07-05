@@ -19,7 +19,7 @@ final class EditRewardViewModel {
         hasLoadedExistingImage = true
         guard form.imageData == nil else { return }
         if let data = try? await APIClient.shared.fetchImage(path: "/api/images/rewards/\(reward.id)") {
-            form.applyPickedImage(data)
+            form.loadExistingImage(data)
         }
     }
 

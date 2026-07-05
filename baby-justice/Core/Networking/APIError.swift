@@ -12,6 +12,7 @@ enum APIError: LocalizedError {
     case network
     case decoding
     case unauthorized
+    case invalidPassword
 
     var errorDescription: String? {
         switch self {
@@ -23,6 +24,8 @@ enum APIError: LocalizedError {
             "Nie udało się odczytać odpowiedzi serwera. Spróbuj ponownie później."
         case .unauthorized:
             "Twoja sesja wygasła. Zaloguj się ponownie."
+        case .invalidPassword:
+            "Nieprawidłowe hasło."
         }
     }
 }

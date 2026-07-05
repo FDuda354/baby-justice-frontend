@@ -7,10 +7,12 @@ import UIKit
 final class RewardFormModel {
     var name = ""
     var descriptionText = ""
-    var costPoints = 10
+    private(set) var costPoints = 10
+    private(set) var costText = "10"
     var rewardType: RewardType = .oneTime
     var imageData: Data?
     var imageError: String?
+    private(set) var hadExistingImage = false
 
     var previewImage: UIImage? {
         imageData.flatMap { UIImage(data: $0) }
@@ -24,11 +26,32 @@ final class RewardFormModel {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var removesExistingImage: Bool {
+        hadExistingImage && imageData == nil
+    }
+
     func prefill(with reward: RewardDTO) {
         name = reward.name
         descriptionText = reward.description
         costPoints = reward.costPoints
+        costText = String(reward.costPoints)
         rewardType = reward.rewardType
+        hadExistingImage = reward.hasImage
+    }
+
+    func loadExistingImage(_ data: Data) {
+        applyPickedImage(data)
+    }
+
+    func updateCost(fromText text: String) {
+        let digits = String(text.filter(\.isNumber).prefix(6))
+        costText = digits
+        costPoints = Int(digits) ?? 0
+    }
+
+    func updateCost(fromStepper value: Int) {
+        costPoints = value
+        costText = String(value)
     }
 
     func applyPickedImage(_ data: Data?) {
@@ -52,7 +75,8 @@ final class RewardFormModel {
             costPoints: costPoints,
             rewardType: rewardType,
             imageBase64: imageData?.base64EncodedString(),
-            imageContentType: imageData == nil ? nil : RewardImageProcessor.contentType
+            imageContentType: imageData == nil ? nil : RewardImageProcessor.contentType,
+            removeImage: removesExistingImage ? true : nil
         )
     }
 }
@@ -96,17 +120,31 @@ struct RewardFormView: View {
         VStack(alignment: .leading, spacing: BJSpacing.xs) {
             fieldLabel("Koszt (punkty)")
             HStack(spacing: BJSpacing.m) {
-                TextField("", value: $model.costPoints, format: .number)
+                TextField("", text: costTextBinding)
                     .keyboardType(.numberPad)
                     .padding(.horizontal, BJSpacing.m)
                     .frame(height: BJSize.fieldHeight)
                     .background(Color(.secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
                     .overlay(fieldBorder)
-                Stepper("", value: $model.costPoints, in: 1...100000)
+                Stepper("", value: costStepperBinding, in: 1...100000)
                     .labelsHidden()
             }
         }
+    }
+
+    private var costTextBinding: Binding<String> {
+        Binding(
+            get: { model.costText },
+            set: { model.updateCost(fromText: $0) }
+        )
+    }
+
+    private var costStepperBinding: Binding<Int> {
+        Binding(
+            get: { model.costPoints },
+            set: { model.updateCost(fromStepper: $0) }
+        )
     }
 
     private var typePicker: some View {

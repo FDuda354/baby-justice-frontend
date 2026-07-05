@@ -33,6 +33,11 @@ final class ChildTasksViewModel {
         await load()
     }
 
+    func reloadOnAppear() async {
+        guard hasLoaded else { return }
+        await load()
+    }
+
     func load() async {
         await loadFlight.run { await self.fetchAll() }
     }
