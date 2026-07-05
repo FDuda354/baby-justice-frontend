@@ -1,0 +1,36 @@
+excluded:
+  - .build
+  - DerivedData
+
+line_length:
+  warning: 150
+  error: 300
+  ignores_comments: true
+  ignores_urls: true
+  ignores_interpolated_strings: true
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  excluded:
+    - s
+    - m
+    - l
+    - id
+    - x
+    - y
+    - vm
+
+type_name:
+  excluded:
+    - baby_justiceApp
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 600
+  error: 1200
+  ignore_comment_only_lines: true
