@@ -3,7 +3,6 @@ import SwiftUI
 struct ParentSettingsView: View {
     @State private var viewModel = ParentSettingsViewModel()
     @State private var showPasswordSheet = false
-    @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountSheet = false
 
     var body: some View {
@@ -37,12 +36,6 @@ struct ParentSettingsView: View {
                 }
             )
         }
-        .alert("Czy na pewno chcesz się wylogować?", isPresented: $showLogoutConfirmation) {
-            Button("Wyloguj się", role: .destructive) {
-                SessionStore.shared.logout()
-            }
-            Button("Anuluj", role: .cancel) {}
-        }
         .alert("Nie udało się zapisać", isPresented: actionErrorBinding) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -54,7 +47,6 @@ struct ParentSettingsView: View {
         Form {
             familySection
             accountSection
-            logoutSection
             deleteAccountSection
         }
     }
@@ -85,16 +77,6 @@ struct ParentSettingsView: View {
             }
         } header: {
             Text("Konto")
-        }
-    }
-
-    private var logoutSection: some View {
-        Section {
-            Button(role: .destructive) {
-                showLogoutConfirmation = true
-            } label: {
-                Label("Wyloguj się", systemImage: "rectangle.portrait.and.arrow.right")
-            }
         }
     }
 
