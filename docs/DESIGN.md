@@ -12,7 +12,7 @@ Roles: `PARENT`, `CHILD`. The child zone and the parent zone are strictly separa
 
 Conventions: per-entity sequence `{table}_id_sequence`, `BIGINT` ids, lowercase snake_case, Polish `COMMENT ON COLUMN` comments, `TIMESTAMPTZ` for timestamps, FK indexes. Most FKs to `family`/`child` use `ON DELETE CASCADE`; the two exceptions are `child.family_id` and `task.assigned_child_id`, both `ON DELETE SET NULL` (see V4/V5).
 
-Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes live in `V2__Child_code_onboarding.sql`; `V3__Child_email_login.sql` renames child.login to email (VARCHAR(150)) and extends password_reset_token to child accounts; `V4__Account_deletion.sql` changes the child.family_id FK to ON DELETE SET NULL (deleting a family must detach children, never delete their accounts); `V5__Task_keeps_assigned_child_history.sql` changes the task.assigned_child_id FK to ON DELETE SET NULL (a child deleting their account must NOT delete the family's assigned tasks — an ASSIGNED task with a null assigned child is effectively unavailable: the parent list shows it without a child name and the parent can edit/cancel it, children never see it); `V6__Points_transaction_family.sql` adds points_transaction.family_id (ON DELETE SET NULL) so parent history is scoped to the family in which each transaction happened, never leaking a re-attached child's previous-family history. The tables below describe the FINAL state after V6.
+Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes live in `V2__Child_code_onboarding.sql`; `V3__Child_email_login.sql` renames child.login to email (VARCHAR(150)) and extends password_reset_token to child accounts; `V4__Account_deletion.sql` changes the child.family_id FK to ON DELETE SET NULL (deleting a family must detach children, never delete their accounts); `V5__Task_keeps_assigned_child_history.sql` changes the task.assigned_child_id FK to ON DELETE SET NULL (a child deleting their account must NOT delete the family's assigned tasks — an ASSIGNED task with a null assigned child is effectively unavailable: the parent list shows it without a child name and the parent can edit/cancel it, children never see it); `V6__Points_transaction_family.sql` adds points_transaction.family_id (ON DELETE SET NULL) so parent history is scoped to the family in which each transaction happened, never leaking a re-attached child's previous-family history; `V7__Task_optimistic_lock.sql` adds task.version for optimistic locking (a stale concurrent write to a task fails with 409 instead of silently overwriting, e.g. an edit racing an approval); `V8__Purchase_idempotency.sql` adds reward_purchase.purchase_token (UNIQUE) — a client-generated idempotency key so a retried purchase request never debits points twice. The tables below describe the FINAL state after V8.
 
 ### family
 - id, name VARCHAR(100) NOT NULL
@@ -45,6 +45,7 @@ Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes li
 - recurrence VARCHAR(20) NOT NULL — enum `TaskRecurrence`: `ONE_TIME` | `REPEATABLE`
 - status VARCHAR(20) NOT NULL — enum `TaskStatus`: `ACTIVE` | `COMPLETED` | `CANCELLED`
 - created_at TIMESTAMPTZ NOT NULL
+- version BIGINT NOT NULL DEFAULT 0 — JPA `@Version` optimistic locking (V7)
 
 ### task_assignment
 - id, task_id FK NOT NULL, child_id FK NOT NULL
@@ -66,6 +67,7 @@ Schema baseline is `V1__Create_schema.sql`; the child-code onboarding changes li
 - reward_name VARCHAR(150) NOT NULL (snapshot), cost_points INTEGER NOT NULL (snapshot)
 - status VARCHAR(20) NOT NULL — enum `PurchaseStatus`: `PENDING_DELIVERY` | `DELIVERED` | `RECEIVED` | `CANCELLED` (`CANCELLED` is terminal — set when the buyer is detached from the family while the purchase was still `PENDING_DELIVERY`; the points are refunded)
 - purchased_at TIMESTAMPTZ NOT NULL, delivered_at TIMESTAMPTZ NULL, received_at TIMESTAMPTZ NULL
+- purchase_token VARCHAR(36) NULL UNIQUE — client-generated idempotency key (V8); a purchase request replaying an already-persisted token returns the existing purchase instead of debiting again
 
 ### points_transaction
 - id, child_id FK NOT NULL
@@ -101,11 +103,12 @@ The child pool still LISTS a task a sibling is currently doing — marked with `
 - abandon (child, only from `IN_PROGRESS`) → `ABANDONED`; a shared one-time task thereby returns to the pool.
 - approve (parent, only from `PENDING_APPROVAL`) → `APPROVED`, resolved_at set, points credited (`TASK_REWARD`, description = task name); if task is `ONE_TIME` → task.status = `COMPLETED`; notifies child (`TASK_APPROVED`).
 - reject (parent, reason required) → `REJECTED`; task stays `ACTIVE` (returns to pool); notifies child (`TASK_REJECTED`).
-- cancel task (parent) → task.status = `CANCELLED`; all its `IN_PROGRESS`/`PENDING_APPROVAL` assignments → `ABANDONED`; notifies affected children (`TASK_CANCELLED`).
+- cancel task (parent) → allowed ONLY when the task has no `IN_PROGRESS`/`PENDING_APPROVAL` assignment (409 `IllegalTransitionException` otherwise — the parent must first approve/reject pending work or the child must abandon); task.status = `CANCELLED`. No notification is sent (nobody is working on it). `TASK_CANCELLED` remains in the enum for historical rows only.
 - edit task (parent): allowed only while `ACTIVE`.
+- Concurrency: accept/edit/cancel load the task row `FOR UPDATE`; task carries `@Version` (V7), so any residual stale write (e.g. an edit racing an approval) fails with 409 instead of resurrecting a `COMPLETED`/`CANCELLED` task.
 
 ### Reward flow
-- purchase (child): reward must be `ACTIVE` and belong to the child; balance >= cost, else 400 `InsufficientPointsException`; debit points (`PURCHASE`, description = reward name); purchase `PENDING_DELIVERY`; if reward `ONE_TIME` → reward.status = `PURCHASED`; notifies parent (`REWARD_PURCHASED`).
+- purchase (child): reward must be `ACTIVE` and belong to the child; balance >= cost, else 400 `InsufficientPointsException`; debit points (`PURCHASE`, description = reward name); purchase `PENDING_DELIVERY`; if reward `ONE_TIME` → reward.status = `PURCHASED`; notifies parent (`REWARD_PURCHASED`). The reward row is loaded `FOR UPDATE`, so concurrent purchases of the same reward serialize and a `ONE_TIME` reward can never sell twice. The optional client `purchaseToken` (idempotency key) makes retries safe: a token already persisted returns the existing purchase.
 - deliver (parent, from `PENDING_DELIVERY`) → `DELIVERED`, notifies child (`REWARD_DELIVERED`).
 - confirm receipt (child, from `DELIVERED`) → `RECEIVED`, notifies parent (`REWARD_RECEIVED`).
 - archive reward (parent): status → `ARCHIVED` (hidden from shop; purchase history intact).
@@ -134,7 +137,7 @@ Stateless JWT, HS256 via `com.auth0:java-jwt:4.5.0`. Token TTL 30 days. Claims: 
 - Password reset (parent AND child): request by email — the account is looked up among parents first, then children; email with link/token via SMTP; token TTL 1h, single-use; confirm sets the new password on whichever account owns the token. Request endpoint always returns 204 (no account enumeration). Mail failures are logged, never break the flow (`@Async`).
 - Child password change: self-service in the app (current + new).
 - The parent CANNOT edit a child's profile, password or avatar — only attach/detach children and adjust points.
-- Account deletion (App Store guideline 5.1.1(v)), password-confirmed, both roles: parent deletion removes the family with its tasks, rewards, purchases and notifications and DETACHES all children (their accounts, balances and points history survive); child deletion removes the child account with its assignments, purchases, transactions, notifications and reset tokens. Both log the user out client-side.
+- Account deletion (App Store guideline 5.1.1(v)), password-confirmed, both roles: parent deletion removes the family with its tasks, rewards, purchases and notifications and DETACHES all children — each child keeps its account and login, but starts over: points balance is reset to 0 and the ENTIRE points-transaction history is deleted (deliberately different from single-child detach, which preserves balance and history — a child account is not formally owned by the parent, so tearing the family down gives it a clean slate for the next family); child deletion removes the child account with its assignments, purchases, transactions, notifications and reset tokens. Both log the user out client-side.
 
 Spring Security: `/api/auth/**` permitAll; `/api/parent/**` requires `ROLE_PARENT`; `/api/child/**` requires `ROLE_CHILD`; `/api/images/**` authenticated; everything else denied. Principal = `AuthenticatedUser` record `(Long accountId, Role role, Long familyId)`. Every service method MUST scope queries by the principal's familyId (and childId for child endpoints) — cross-family access returns 404, not 403.
 
@@ -156,7 +159,7 @@ Images travel as base64 strings in JSON on upload, raw bytes (proper Content-Typ
 - `TaskAssignmentDTO(Long id, Long taskId, String taskName, int points, Long childId, String childName, AssignmentStatus status, Instant acceptedAt, Instant completedAt, Instant resolvedAt, String rejectionReason)`
 - `TaskDetailsDTO(TaskDTO task, List<TaskAssignmentDTO> assignments)` (assignments newest first)
 - `AvailableTaskDTO(Long id, String name, String description, int points, TaskAvailability availability, TaskRecurrence recurrence, String inProgressByName)` (child pool; inProgressByName = sibling currently doing it, null when acceptable)
-- `ChildActivityDTO(List<TaskAssignmentDTO> activeAssignments, List<RewardPurchaseDTO> pendingDeliveries)` (parent's live view of one child: IN_PROGRESS + PENDING_APPROVAL assignments, PENDING_DELIVERY + DELIVERED purchases)
+- `ChildActivityDTO(List<TaskAssignmentDTO> activeAssignments, List<RewardPurchaseDTO> pendingDeliveries)` (parent's live view of one child: IN_PROGRESS + PENDING_APPROVAL assignments, PENDING_DELIVERY + DELIVERED purchases; purchases scoped to the requesting parent's family — DELIVERED purchases surviving from a previous family are never shown)
 - `RewardDTO(Long id, Long childId, String name, String description, int costPoints, RewardType rewardType, RewardStatus status, boolean hasImage, Instant createdAt)`
 - `RewardPurchaseDTO(Long id, Long rewardId, String rewardName, Long childId, String childName, int costPoints, PurchaseStatus status, boolean rewardHasImage, Instant purchasedAt, Instant deliveredAt, Instant receivedAt)`
 - `PointsTransactionDTO(Long id, Long childId, String childName, int delta, int balanceAfter, PointsTransactionType type, String description, Instant createdAt)`
@@ -227,7 +230,7 @@ Child zone (`/api/child`, ROLE_CHILD):
 | POST | /assignments/{assignmentId}/complete | → `TaskAssignmentDTO` |
 | POST | /assignments/{assignmentId}/abandon | → 204 |
 | GET | /rewards | → `List<RewardDTO>` (own shop, ACTIVE only) |
-| POST | /rewards/{rewardId}/purchase | → `RewardPurchaseDTO` |
+| POST | /rewards/{rewardId}/purchase | `PurchaseRewardRequest(String purchaseToken)` (optional body; client-generated idempotency key, max 36 chars) → `RewardPurchaseDTO` |
 | GET | /purchases | → `List<RewardPurchaseDTO>` (own, newest first) |
 | POST | /purchases/{purchaseId}/confirm-receipt | → `RewardPurchaseDTO` |
 | GET | /history/points | → `List<PointsTransactionDTO>` |
@@ -347,7 +350,7 @@ baby-justice/
 
 ### Status chip colors and Polish labels
 - Assignment: IN_PROGRESS "W trakcie" (blue), PENDING_APPROVAL "Czeka na akceptację" (amber), APPROVED "Zaliczone" (green), REJECTED "Odrzucone" (red), ABANDONED "Porzucone" (gray).
-- Purchase: PENDING_DELIVERY "Do wydania" (amber), DELIVERED "Wydana — potwierdź odbiór" (blue), RECEIVED "Odebrana" (green).
+- Purchase: PENDING_DELIVERY "Do wydania" (amber), DELIVERED "Wydana — potwierdź odbiór" (blue), RECEIVED "Odebrana" (green), CANCELLED "Anulowany" (gray).
 - Task: ACTIVE "Aktywne", COMPLETED "Zakończone", CANCELLED "Anulowane".
 - Availability: SHARED "Wspólne", ASSIGNED "Przypisane"; recurrence: ONE_TIME "Jednorazowe", REPEATABLE "Powtarzalne"; reward type: ONE_TIME "Jednorazowa", REPEATABLE "Powtarzalna".
 

@@ -13,9 +13,15 @@ final class RewardFormModel {
     var imageData: Data?
     var imageError: String?
     private(set) var hadExistingImage = false
+    private(set) var existingImageData: Data?
+    private(set) var userRemovedImage = false
 
     var previewImage: UIImage? {
-        imageData.flatMap { UIImage(data: $0) }
+        (imageData ?? existingImageData).flatMap { UIImage(data: $0) }
+    }
+
+    var hasAnyImage: Bool {
+        imageData != nil || existingImageData != nil
     }
 
     var isValid: Bool {
@@ -27,7 +33,7 @@ final class RewardFormModel {
     }
 
     private var removesExistingImage: Bool {
-        hadExistingImage && imageData == nil
+        hadExistingImage && userRemovedImage && imageData == nil
     }
 
     func prefill(with reward: RewardDTO) {
@@ -40,7 +46,8 @@ final class RewardFormModel {
     }
 
     func loadExistingImage(_ data: Data) {
-        applyPickedImage(data)
+        guard imageData == nil, !userRemovedImage else { return }
+        existingImageData = data
     }
 
     func updateCost(fromText text: String) {
@@ -60,11 +67,14 @@ final class RewardFormModel {
             return
         }
         imageData = processed
+        userRemovedImage = false
         imageError = nil
     }
 
     func removeImage() {
         imageData = nil
+        existingImageData = nil
+        userRemovedImage = true
         imageError = nil
     }
 
@@ -172,11 +182,11 @@ struct RewardFormView: View {
             }
             HStack {
                 PhotosPicker(selection: $photoItem, matching: .images) {
-                    Label(model.imageData == nil ? "Wybierz zdjęcie" : "Zmień zdjęcie", systemImage: "photo")
+                    Label(model.hasAnyImage ? "Zmień zdjęcie" : "Wybierz zdjęcie", systemImage: "photo")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color.bjAccent)
                 }
-                if model.imageData != nil {
+                if model.hasAnyImage {
                     Spacer()
                     Button {
                         model.removeImage()

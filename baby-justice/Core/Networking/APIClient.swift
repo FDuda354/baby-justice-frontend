@@ -78,6 +78,10 @@ struct CreateRewardRequest: Encodable {
     let removeImage: Bool?
 }
 
+struct PurchaseRewardRequest: Encodable {
+    let purchaseToken: String
+}
+
 final class APIClient {
     static let shared = APIClient()
 
@@ -296,8 +300,8 @@ final class APIClient {
         try await request(method: "GET", path: "/api/child/rewards")
     }
 
-    func purchaseReward(rewardId: Int64) async throws -> RewardPurchaseDTO {
-        try await request(method: "POST", path: "/api/child/rewards/\(rewardId)/purchase")
+    func purchaseReward(rewardId: Int64, purchaseToken: String) async throws -> RewardPurchaseDTO {
+        try await request(method: "POST", path: "/api/child/rewards/\(rewardId)/purchase", body: PurchaseRewardRequest(purchaseToken: purchaseToken))
     }
 
     func myPurchases() async throws -> [RewardPurchaseDTO] {

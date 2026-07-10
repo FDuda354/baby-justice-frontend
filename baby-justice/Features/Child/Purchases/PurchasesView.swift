@@ -9,11 +9,11 @@ final class PurchasesViewModel {
     var confirmingPurchaseId: Int64?
 
     var activePurchases: [RewardPurchaseDTO] {
-        purchases.filter { $0.status != .received }
+        purchases.filter { $0.status == .pendingDelivery || $0.status == .delivered }
     }
 
-    var receivedPurchases: [RewardPurchaseDTO] {
-        purchases.filter { $0.status == .received }
+    var finishedPurchases: [RewardPurchaseDTO] {
+        purchases.filter { $0.status == .received || $0.status == .cancelled }
     }
 
     func load() async {
@@ -113,8 +113,8 @@ struct PurchasesView: View {
                             Task { await viewModel.confirmReceipt(of: purchase) }
                         }
                     }
-                    if !viewModel.receivedPurchases.isEmpty {
-                        receivedSection
+                    if !viewModel.finishedPurchases.isEmpty {
+                        finishedSection
                     }
                 }
                 .padding(.horizontal, BJSpacing.l)
@@ -125,23 +125,23 @@ struct PurchasesView: View {
         .refreshable { await viewModel.load() }
     }
 
-    private var receivedSection: some View {
+    private var finishedSection: some View {
         VStack(spacing: BJSpacing.m) {
-            receivedHeader
+            finishedHeader
             if showReceived {
-                ForEach(viewModel.receivedPurchases) { purchase in
+                ForEach(viewModel.finishedPurchases) { purchase in
                     ChildPurchaseCard(purchase: purchase, isConfirming: false) {}
                 }
             }
         }
     }
 
-    private var receivedHeader: some View {
+    private var finishedHeader: some View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) { showReceived.toggle() }
         } label: {
             HStack {
-                Text("Odebrane (\(viewModel.receivedPurchases.count))")
+                Text("Zakończone (\(viewModel.finishedPurchases.count))")
                     .font(.headline)
                     .foregroundStyle(.primary)
                 Spacer()
@@ -227,6 +227,10 @@ private struct ChildPurchaseCard: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        case .cancelled:
+            Text("Zakup anulowany — punkty wróciły na Twoje konto")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -235,6 +239,7 @@ private struct ChildPurchaseCard: View {
         case .pendingDelivery: .bjAmber
         case .delivered: .blue
         case .received: .bjPrimary
+        case .cancelled: .gray
         }
     }
 }

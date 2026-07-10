@@ -229,6 +229,7 @@ private func purchaseChipColor(_ status: PurchaseStatus) -> Color {
     case .pendingDelivery: .bjAmber
     case .delivered: .blue
     case .received: .bjPrimary
+    case .cancelled: .gray
     }
 }
 

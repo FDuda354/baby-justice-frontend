@@ -10,6 +10,7 @@ struct RewardDetailView: View {
     @State private var isPurchasing = false
     @State private var purchaseCompleted = false
     @State private var errorMessage: String?
+    @State private var purchaseToken = UUID().uuidString
 
     private var isAffordable: Bool { balance >= reward.costPoints }
     private var missingPoints: Int { reward.costPoints - balance }
@@ -156,7 +157,7 @@ struct RewardDetailView: View {
         isPurchasing = true
         errorMessage = nil
         do {
-            _ = try await APIClient.shared.purchaseReward(rewardId: reward.id)
+            _ = try await APIClient.shared.purchaseReward(rewardId: reward.id, purchaseToken: purchaseToken)
             onPurchased()
             withAnimation { purchaseCompleted = true }
         } catch {

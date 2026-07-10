@@ -98,12 +98,14 @@ enum PurchaseStatus: String, Codable, CaseIterable {
     case pendingDelivery = "PENDING_DELIVERY"
     case delivered = "DELIVERED"
     case received = "RECEIVED"
+    case cancelled = "CANCELLED"
 
     var displayName: String {
         switch self {
         case .pendingDelivery: "Do wydania"
         case .delivered: "Wydana — potwierdź odbiór"
         case .received: "Odebrana"
+        case .cancelled: "Anulowany"
         }
     }
 }
