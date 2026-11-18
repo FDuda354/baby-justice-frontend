@@ -32,7 +32,7 @@ final class ParentRewardsHomeViewModel {
             children = try await childrenCall
             deliveriesCount = try await deliveriesCall.count
             hasLoadedOnce = true
-            clearSelectionIfChildRemoved()
+            ensureValidSelection()
             await loadRewards()
         } catch {
             errorMessage = error.localizedDescription
@@ -46,7 +46,7 @@ final class ParentRewardsHomeViewModel {
         async let deliveriesCall = APIClient.shared.deliveries()
         if let freshChildren = try? await childrenCall {
             children = freshChildren
-            clearSelectionIfChildRemoved()
+            ensureValidSelection()
         }
         if let freshDeliveries = try? await deliveriesCall {
             deliveriesCount = freshDeliveries.count
@@ -78,11 +78,10 @@ final class ParentRewardsHomeViewModel {
         isLoadingRewards = false
     }
 
-    private func clearSelectionIfChildRemoved() {
-        if let selectedChildId, !children.contains(where: { $0.id == selectedChildId }) {
-            self.selectedChildId = nil
-            rewards = []
-        }
+    private func ensureValidSelection() {
+        guard !children.contains(where: { $0.id == selectedChildId }) else { return }
+        selectedChildId = children.first?.id
+        rewards = []
     }
 }
 
@@ -306,8 +305,9 @@ private struct RewardRowView: View {
                         }
                     }
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 PointsBadge(points: reward.costPoints)
+                    .fixedSize()
             }
         }
     }

@@ -88,6 +88,7 @@ struct ParentSettingsView: View {
                 showDeleteAccountSheet = true
             } label: {
                 Label("Usuń konto", systemImage: "trash.fill")
+                    .foregroundStyle(Color.bjDanger)
             }
         } footer: {
             Text("Trwałe usunięcie konta rodzica wraz z rodziną.")

@@ -5,11 +5,9 @@ struct ParentTasksView: View {
     @State private var showAddTask = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            filterPicker
-            content
-        }
-        .background(Color(.systemGroupedBackground))
+        content
+            .bjPinnedHeader { filterPicker }
+            .background(Color(.systemGroupedBackground))
         .navigationTitle("Zadania")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -129,10 +127,10 @@ struct ParentTaskRowView: View {
                     PointsBadge(points: task.points)
                 }
                 HStack(spacing: BJSpacing.s) {
-                    StatusChip(text: task.availability.displayName, color: ParentTaskChipStyle.color(for: task.availability))
-                    StatusChip(text: task.recurrence.displayName, color: .gray)
+                    StatusChip(text: task.availability.displayName, color: task.availability.chipColor)
+                    StatusChip(text: task.recurrence.displayName, color: task.recurrence.chipColor)
                     if showStatus {
-                        StatusChip(text: task.status.displayName, color: ParentTaskChipStyle.color(for: task.status))
+                        StatusChip(text: task.status.displayName, color: task.status.chipColor)
                     }
                 }
                 if task.availability == .assigned, let childName = task.assignedChildName {
@@ -141,33 +139,6 @@ struct ParentTaskRowView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-        }
-    }
-}
-
-enum ParentTaskChipStyle {
-    static func color(for status: AssignmentStatus) -> Color {
-        switch status {
-        case .inProgress: .blue
-        case .pendingApproval: .bjAmber
-        case .approved: .bjPrimary
-        case .rejected: .bjDanger
-        case .abandoned: .gray
-        }
-    }
-
-    static func color(for status: TaskStatus) -> Color {
-        switch status {
-        case .active: .bjPrimary
-        case .completed: .blue
-        case .cancelled: .gray
-        }
-    }
-
-    static func color(for availability: TaskAvailability) -> Color {
-        switch availability {
-        case .shared: .bjAccent
-        case .assigned: .indigo
         }
     }
 }

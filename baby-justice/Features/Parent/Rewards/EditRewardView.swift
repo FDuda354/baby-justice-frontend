@@ -60,7 +60,7 @@ struct EditRewardView: View {
                         }
                     }
                     RewardFormView(model: viewModel.form)
-                    PrimaryButton(title: "Zapisz zmiany", isLoading: viewModel.isSaving) {
+                    PrimaryButton(title: "Zapisz zmiany", isLoading: viewModel.isSaving, isEnabled: viewModel.form.isValid) {
                         Task {
                             await save()
                         }

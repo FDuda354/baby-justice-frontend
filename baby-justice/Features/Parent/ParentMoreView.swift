@@ -33,6 +33,7 @@ struct ParentMoreView: View {
                     showLogoutConfirmation = true
                 } label: {
                     Label("Wyloguj się", systemImage: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(Color.bjDanger)
                 }
             }
         }

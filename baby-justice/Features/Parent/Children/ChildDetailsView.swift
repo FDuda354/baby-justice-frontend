@@ -177,7 +177,7 @@ private struct ActiveAssignmentRow: View {
                     Text(assignment.taskName)
                         .font(.subheadline.weight(.semibold))
                         .multilineTextAlignment(.leading)
-                    StatusChip(text: assignment.status.displayName, color: assignment.status == .inProgress ? .blue : .bjAmber)
+                    StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
                 }
                 Spacer()
                 PointsBadge(points: assignment.points)
@@ -196,7 +196,7 @@ private struct ActivePurchaseRow: View {
                     Text(purchase.rewardName)
                         .font(.subheadline.weight(.semibold))
                         .multilineTextAlignment(.leading)
-                    StatusChip(text: purchase.status.displayName, color: purchase.status == .pendingDelivery ? .bjAmber : .blue)
+                    StatusChip(text: purchase.status.displayName, color: purchase.status.chipColor)
                 }
                 Spacer()
                 PointsBadge(points: purchase.costPoints)

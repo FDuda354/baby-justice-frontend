@@ -49,7 +49,7 @@ struct AddRewardView: View {
                         }
                     }
                     RewardFormView(model: viewModel.form)
-                    PrimaryButton(title: "Dodaj nagrodę", isLoading: viewModel.isSaving) {
+                    PrimaryButton(title: "Dodaj nagrodę", isLoading: viewModel.isSaving, isEnabled: viewModel.form.isValid) {
                         Task {
                             await save()
                         }

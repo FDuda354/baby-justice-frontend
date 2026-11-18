@@ -4,20 +4,9 @@ struct ParentHistoryView: View {
     @State private var viewModel = ParentHistoryViewModel()
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker("Rodzaj historii", selection: $viewModel.segment) {
-                ForEach(ParentHistorySegment.allCases) { segment in
-                    Text(segment.title).tag(segment)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, BJSpacing.l)
-            .padding(.vertical, BJSpacing.s)
-            .bjReadableWidth()
-
-            content
-        }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        content
+            .bjPinnedHeader { segmentPicker }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("Historia")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -33,6 +22,18 @@ struct ParentHistoryView: View {
         .onChange(of: viewModel.selectedChildId) { _, _ in
             Task { await viewModel.loadCurrentSegment() }
         }
+    }
+
+    private var segmentPicker: some View {
+        Picker("Rodzaj historii", selection: $viewModel.segment) {
+            ForEach(ParentHistorySegment.allCases) { segment in
+                Text(segment.title).tag(segment)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, BJSpacing.l)
+        .padding(.vertical, BJSpacing.s)
+        .bjReadableWidth()
     }
 
     private var childFilterMenu: some View {
@@ -80,36 +81,46 @@ struct ParentHistoryView: View {
             if viewModel.pointsHistory.isEmpty {
                 emptyState
             } else {
-                List(viewModel.pointsHistory) { entry in
+                historyCards(viewModel.pointsHistory) { entry in
                     PointsHistoryRow(entry: entry)
                 }
-                .listStyle(.insetGrouped)
-                .bjReadableWidth()
-                .refreshable { await viewModel.loadCurrentSegment() }
             }
         case .purchases:
             if viewModel.purchasesHistory.isEmpty {
                 emptyState
             } else {
-                List(viewModel.purchasesHistory) { purchase in
+                historyCards(viewModel.purchasesHistory) { purchase in
                     PurchaseHistoryRow(purchase: purchase)
                 }
-                .listStyle(.insetGrouped)
-                .bjReadableWidth()
-                .refreshable { await viewModel.loadCurrentSegment() }
             }
         case .tasks:
             if viewModel.tasksHistory.isEmpty {
                 emptyState
             } else {
-                List(viewModel.tasksHistory) { assignment in
+                historyCards(viewModel.tasksHistory) { assignment in
                     TaskHistoryRow(assignment: assignment)
                 }
-                .listStyle(.insetGrouped)
-                .bjReadableWidth()
-                .refreshable { await viewModel.loadCurrentSegment() }
             }
         }
+    }
+
+    private func historyCards<Item: Identifiable, Row: View>(
+        _ items: [Item],
+        @ViewBuilder row: @escaping (Item) -> Row
+    ) -> some View {
+        BJScrollView {
+            LazyVStack(spacing: BJSpacing.m) {
+                ForEach(items) { item in
+                    CardView {
+                        row(item)
+                    }
+                }
+            }
+            .padding(.horizontal, BJSpacing.l)
+            .padding(.vertical, BJSpacing.s)
+            .padding(.bottom, BJSpacing.xl)
+        }
+        .refreshable { await viewModel.loadCurrentSegment() }
     }
 
     @ViewBuilder
@@ -185,7 +196,7 @@ private struct PurchaseHistoryRow: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Spacer()
-                StatusChip(text: purchase.status.displayName, color: purchaseChipColor(purchase.status))
+                StatusChip(text: purchase.status.displayName, color: purchase.status.chipColor)
             }
             Text(Formatters.formatted(date: purchase.purchasedAt))
                 .font(.caption)
@@ -211,7 +222,7 @@ private struct TaskHistoryRow: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Spacer()
-                StatusChip(text: assignment.status.displayName, color: assignmentChipColor(assignment.status))
+                StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
             }
             if let resolvedAt = assignment.resolvedAt {
                 Text(Formatters.formatted(date: resolvedAt))
@@ -225,24 +236,5 @@ private struct TaskHistoryRow: View {
             }
         }
         .padding(.vertical, BJSpacing.xs)
-    }
-}
-
-private func purchaseChipColor(_ status: PurchaseStatus) -> Color {
-    switch status {
-    case .pendingDelivery: .bjAmber
-    case .delivered: .blue
-    case .received: .bjPrimary
-    case .cancelled: .gray
-    }
-}
-
-private func assignmentChipColor(_ status: AssignmentStatus) -> Color {
-    switch status {
-    case .inProgress: .blue
-    case .pendingApproval: .bjAmber
-    case .approved: .bjPrimary
-    case .rejected: .bjDanger
-    case .abandoned: .gray
     }
 }

@@ -132,13 +132,15 @@ struct RewardFormView: View {
             HStack(spacing: BJSpacing.m) {
                 TextField("", text: costTextBinding)
                     .keyboardType(.numberPad)
-                    .padding(.horizontal, BJSpacing.m)
-                    .frame(height: BJSize.fieldHeight)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80, height: BJSize.fieldHeight)
                     .background(Color(.secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
                     .overlay(fieldBorder)
-                Stepper("", value: costStepperBinding, in: 1...100000)
+                Stepper("Koszt (punkty)", value: costStepperBinding, in: 1...100000)
                     .labelsHidden()
+                Spacer()
+                PointsBadge(points: model.costPoints)
             }
         }
     }

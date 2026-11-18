@@ -140,8 +140,9 @@ struct ParentDashboardView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Spacer(minLength: BJSpacing.s)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 PointsBadge(points: child.pointsBalance)
+                    .fixedSize()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)

@@ -35,11 +35,9 @@ struct ShopView: View {
     @State private var segment = ShopSegment.shop
 
     var body: some View {
-        VStack(spacing: 0) {
-            segmentPicker
-            content
-        }
-        .background(Color(.systemGroupedBackground))
+        content
+            .bjPinnedHeader { segmentPicker }
+            .background(Color(.systemGroupedBackground))
         .navigationTitle("Sklep")
         .task { await viewModel.load() }
     }
@@ -142,9 +140,9 @@ struct ShopView: View {
 
     private var gridColumns: [GridItem] {
         if dynamicTypeSize.isAccessibilitySize {
-            [GridItem(.flexible())]
+            [GridItem(.flexible(), alignment: .top)]
         } else {
-            [GridItem(.adaptive(minimum: rewardMinimumWidth), spacing: BJSpacing.m)]
+            [GridItem(.adaptive(minimum: rewardMinimumWidth), spacing: BJSpacing.m, alignment: .top)]
         }
     }
 
@@ -179,14 +177,19 @@ struct ShopRewardCard: View {
                     .lineLimit(2, reservesSpace: true)
                 PointsBadge(points: reward.costPoints)
                     .font(.subheadline)
-                if !isAffordable {
-                    Text("Brakuje Ci \(missingPoints) pkt")
-                        .font(.caption)
-                        .foregroundStyle(Color.bjDanger)
-                }
+                missingPointsLabel
             }
         }
         .opacity(isAffordable ? 1 : 0.75)
+    }
+
+    private var missingPointsLabel: some View {
+        Text("Brakuje Ci \(max(missingPoints, 0)) pkt")
+            .font(.caption)
+            .foregroundStyle(Color.bjDanger)
+            .lineLimit(1)
+            .opacity(isAffordable ? 0 : 1)
+            .accessibilityHidden(isAffordable)
     }
 
     private var imageSection: some View {

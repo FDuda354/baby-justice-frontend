@@ -4,19 +4,9 @@ struct ChildTasksHomeView: View {
     @State private var viewModel = ChildTasksViewModel()
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker("Widok zadań", selection: $viewModel.segment) {
-                ForEach(ChildTasksSegment.allCases) { segment in
-                    Text(segment.title).tag(segment)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, BJSpacing.l)
-            .padding(.vertical, BJSpacing.s)
-            .bjReadableWidth()
-            content
-        }
-        .background(Color(.systemGroupedBackground))
+        content
+            .bjPinnedHeader { segmentPicker }
+            .background(Color(.systemGroupedBackground))
         .navigationTitle("Zadania")
         .navigationDestination(for: AvailableTaskDTO.self) { task in
             ChildTaskDetailView(task: task, viewModel: viewModel)
@@ -28,6 +18,18 @@ struct ChildTasksHomeView: View {
         .onAppear {
             Task { await viewModel.reloadOnAppear() }
         }
+    }
+
+    private var segmentPicker: some View {
+        Picker("Widok zadań", selection: $viewModel.segment) {
+            ForEach(ChildTasksSegment.allCases) { segment in
+                Text(segment.title).tag(segment)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, BJSpacing.l)
+        .padding(.vertical, BJSpacing.s)
+        .bjReadableWidth()
     }
 
     @ViewBuilder
@@ -85,7 +87,7 @@ struct ChildTasksHomeView: View {
             EmptyStateView(
                 icon: "figure.run",
                 title: "Nic tu jeszcze nie ma",
-                message: "Wybierz coś z listy \"Do wzięcia\" i zgarnij punkty!"
+                message: "Wybierz coś z listy „Do wzięcia” i zgarnij punkty!"
             )
         } else {
             ForEach(viewModel.myTasks) { assignment in
@@ -125,12 +127,8 @@ private struct AvailableTaskRow: View {
                     if let siblingName = task.inProgressByName {
                         StatusChip(text: "Realizowane przez \(siblingName)", color: .bjAmber)
                     } else {
-                        if task.availability == .shared {
-                            StatusChip(text: "Wspólne", color: .indigo)
-                        }
-                        if task.recurrence == .repeatable {
-                            StatusChip(text: "Powtarzalne", color: .teal)
-                        }
+                        StatusChip(text: task.availability.displayName, color: task.availability.chipColor)
+                        StatusChip(text: task.recurrence.displayName, color: task.recurrence.chipColor)
                     }
                     Spacer()
                     if task.isAcceptable {
@@ -159,7 +157,7 @@ private struct MyTaskRow: View {
                     PointsBadge(points: assignment.points)
                 }
                 HStack(spacing: BJSpacing.s) {
-                    StatusChip(text: assignment.status.displayName, color: statusColor)
+                    StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
                     Spacer()
                     if assignment.status == .inProgress {
                         Image(systemName: "chevron.right")
@@ -173,16 +171,6 @@ private struct MyTaskRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-        }
-    }
-
-    private var statusColor: Color {
-        switch assignment.status {
-        case .inProgress: .blue
-        case .pendingApproval: .bjAmber
-        case .approved: .bjPrimary
-        case .rejected: .bjDanger
-        case .abandoned: .gray
         }
     }
 }

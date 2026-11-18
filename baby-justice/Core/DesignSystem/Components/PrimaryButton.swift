@@ -3,6 +3,7 @@ import SwiftUI
 struct PrimaryButton: View {
     let title: String
     var isLoading: Bool = false
+    var isEnabled: Bool = true
     var background: Color = .bjPrimary
     let action: () -> Void
 
@@ -27,7 +28,8 @@ struct PrimaryButton: View {
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))
         }
-        .disabled(isLoading)
+        .disabled(isLoading || !isEnabled)
+        .opacity(isEnabled ? 1 : 0.5)
         .accessibilityLabel(title)
     }
 }

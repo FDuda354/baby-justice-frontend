@@ -96,23 +96,24 @@ struct ChildrenListView: View {
                 VStack(alignment: .leading, spacing: BJSpacing.xs) {
                     Text(child.name)
                         .font(.headline)
-                    Text(subtitle(for: child))
+                    if let age = ChildBirthDate.ageText(forIso: child.birthDate) {
+                        Text(age)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(child.email)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
-                Spacer(minLength: BJSpacing.s)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 PointsBadge(points: child.pointsBalance)
+                    .fixedSize()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
         }
-    }
-
-    private func subtitle(for child: ChildDTO) -> String {
-        if let age = ChildBirthDate.ageText(forIso: child.birthDate) {
-            return "\(age) • \(child.email)"
-        }
-        return child.email
     }
 }

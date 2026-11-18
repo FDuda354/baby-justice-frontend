@@ -96,9 +96,9 @@ struct TaskDetailsView: View {
                         .font(.title3)
                 }
                 HStack(spacing: BJSpacing.s) {
-                    StatusChip(text: task.status.displayName, color: ParentTaskChipStyle.color(for: task.status))
-                    StatusChip(text: task.availability.displayName, color: ParentTaskChipStyle.color(for: task.availability))
-                    StatusChip(text: task.recurrence.displayName, color: .gray)
+                    StatusChip(text: task.status.displayName, color: task.status.chipColor)
+                    StatusChip(text: task.availability.displayName, color: task.availability.chipColor)
+                    StatusChip(text: task.recurrence.displayName, color: task.recurrence.chipColor)
                 }
                 if task.availability == .assigned, let childName = task.assignedChildName {
                     Label(childName, systemImage: "person.fill")
@@ -154,7 +154,7 @@ struct ParentAssignmentHistoryRow: View {
                     Text(assignment.childName)
                         .font(.headline)
                     Spacer()
-                    StatusChip(text: assignment.status.displayName, color: ParentTaskChipStyle.color(for: assignment.status))
+                    StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
                 }
                 dateRow(label: "Przyjęto", date: assignment.acceptedAt)
                 if let completedAt = assignment.completedAt {

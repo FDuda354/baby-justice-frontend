@@ -178,64 +178,37 @@ struct ChildProfileView: View {
     }
 
     private var accountCard: some View {
-        CardView {
-            Button {
-                viewModel.clearFeedback()
-                showingPasswordSheet = true
-            } label: {
-                HStack(spacing: BJSpacing.m) {
-                    Image(systemName: "key.fill")
-                        .foregroundStyle(Color.bjPrimary)
-                        .frame(width: 28)
-                    Text("Zmień hasło")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.primary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+        Button {
+            viewModel.clearFeedback()
+            showingPasswordSheet = true
+        } label: {
+            ProfileRowCard(icon: "key.fill", title: "Zmień hasło")
         }
+        .buttonStyle(.plain)
     }
 
     private var helpCard: some View {
-        CardView {
-            NavigationLink {
-                HelpView()
-            } label: {
-                HStack(spacing: BJSpacing.m) {
-                    Image(systemName: "questionmark.circle.fill")
-                        .foregroundStyle(Color.bjPrimary)
-                        .frame(width: 28)
-                    Text("Jak korzystać z aplikacji")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.primary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+        NavigationLink {
+            HelpView()
+        } label: {
+            ProfileRowCard(icon: "questionmark.circle.fill", title: "Jak korzystać z aplikacji")
         }
+        .buttonStyle(.plain)
     }
 
     private var logoutButton: some View {
         Button {
             showingLogoutConfirmation = true
         } label: {
-            Label("Wyloguj się", systemImage: "rectangle.portrait.and.arrow.right")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .frame(height: BJSize.buttonHeight)
-                .background(Color.bjDanger)
-                .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))
+            ProfileRowCard(
+                icon: "rectangle.portrait.and.arrow.right",
+                title: "Wyloguj się",
+                iconColor: .bjDanger,
+                titleColor: .bjDanger,
+                showsChevron: false
+            )
         }
+        .buttonStyle(.plain)
     }
 
     private var deleteAccountButton: some View {
@@ -257,6 +230,34 @@ struct ChildProfileView: View {
             try? await Task.sleep(for: .seconds(2))
             codeCopied = false
         }
+    }
+}
+
+private struct ProfileRowCard: View {
+    let icon: String
+    let title: String
+    var iconColor: Color = .bjPrimary
+    var titleColor: Color = .primary
+    var showsChevron = true
+
+    var body: some View {
+        CardView {
+            HStack(spacing: BJSpacing.m) {
+                Image(systemName: icon)
+                    .foregroundStyle(iconColor)
+                    .frame(width: 28, height: 28)
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(titleColor)
+                Spacer()
+                if showsChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .contentShape(RoundedRectangle(cornerRadius: BJRadius.card, style: .continuous))
     }
 }
 

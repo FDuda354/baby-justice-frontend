@@ -53,12 +53,8 @@ struct ChildTaskDetailView: View {
                         .foregroundStyle(.secondary)
                 }
                 HStack(spacing: BJSpacing.s) {
-                    if task.availability == .shared {
-                        StatusChip(text: "Wspólne", color: .indigo)
-                    }
-                    if task.recurrence == .repeatable {
-                        StatusChip(text: "Powtarzalne", color: .teal)
-                    }
+                    StatusChip(text: task.availability.displayName, color: task.availability.chipColor)
+                    StatusChip(text: task.recurrence.displayName, color: task.recurrence.chipColor)
                 }
             }
         }

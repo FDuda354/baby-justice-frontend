@@ -89,20 +89,23 @@ struct RegisterView: View {
             Text("Data urodzenia")
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(.secondary)
-            DatePicker("Data urodzenia", selection: $viewModel.childBirthDate, in: ...Date(), displayedComponents: .date)
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .environment(\.locale, Locale(identifier: "pl_PL"))
-                .padding(.horizontal, BJSpacing.m)
-                .padding(.vertical, BJSpacing.s)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(minHeight: BJSize.fieldHeight)
-                .background(Color(.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous)
-                        .strokeBorder(Color.bjPrimary.opacity(0.2), lineWidth: 1)
-                )
+            DatePicker(selection: $viewModel.childBirthDate, in: ...Date(), displayedComponents: .date) {
+                Image(systemName: "calendar")
+                    .foregroundStyle(Color.bjPrimary)
+                    .accessibilityLabel("Data urodzenia")
+            }
+            .datePickerStyle(.compact)
+            .environment(\.locale, Locale(identifier: "pl_PL"))
+            .padding(.horizontal, BJSpacing.m)
+            .padding(.vertical, BJSpacing.xs)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: BJSize.fieldHeight)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous)
+                    .strokeBorder(Color.bjPrimary.opacity(0.2), lineWidth: 1)
+            )
         }
     }
 

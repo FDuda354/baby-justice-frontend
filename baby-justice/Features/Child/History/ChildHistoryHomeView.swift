@@ -12,11 +12,9 @@ struct ChildHistoryHomeView: View {
     @State private var segment = ChildHistorySegment.points
 
     var body: some View {
-        VStack(spacing: 0) {
-            segmentPicker
-            content
-        }
-        .background(Color(.systemGroupedBackground))
+        content
+            .bjPinnedHeader { segmentPicker }
+            .background(Color(.systemGroupedBackground))
         .navigationTitle("Historia")
         .task { await viewModel.load() }
     }
@@ -174,7 +172,7 @@ private struct ChildTaskHistoryRow: View {
                         .font(.subheadline)
                 }
                 HStack {
-                    StatusChip(text: assignment.status.displayName, color: statusColor)
+                    StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
                     Spacer()
                     Text(Formatters.formatted(date: resolvedDate))
                         .font(.caption)
@@ -191,15 +189,5 @@ private struct ChildTaskHistoryRow: View {
 
     private var resolvedDate: Date {
         assignment.resolvedAt ?? assignment.completedAt ?? assignment.acceptedAt
-    }
-
-    private var statusColor: Color {
-        switch assignment.status {
-        case .approved: .bjPrimary
-        case .rejected: .bjDanger
-        case .abandoned: .gray
-        case .inProgress: .blue
-        case .pendingApproval: .bjAmber
-        }
     }
 }

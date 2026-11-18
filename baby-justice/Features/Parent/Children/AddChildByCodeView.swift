@@ -21,7 +21,7 @@ struct AddChildByCodeView: View {
                             .font(.footnote.weight(.medium))
                             .foregroundStyle(Color.bjDanger)
                     }
-                    PrimaryButton(title: "Dodaj do rodziny", isLoading: isSaving) {
+                    PrimaryButton(title: "Dodaj do rodziny", isLoading: isSaving, isEnabled: childCode.count == 6) {
                         Task { await save() }
                     }
                 }

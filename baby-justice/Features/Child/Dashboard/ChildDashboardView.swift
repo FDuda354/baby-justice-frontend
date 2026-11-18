@@ -24,13 +24,16 @@ struct ChildDashboardView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Start")
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
                     ChildNotificationsView()
                 } label: {
-                    bellIcon(unreadCount: viewModel.dashboard?.unreadNotificationsCount ?? 0)
+                    Label {
+                        Text("Powiadomienia")
+                    } icon: {
+                        bellIcon(unreadCount: viewModel.dashboard?.unreadNotificationsCount ?? 0)
+                    }
                 }
             }
         }

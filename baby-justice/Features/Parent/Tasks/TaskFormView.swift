@@ -106,15 +106,13 @@ struct TaskFormView: View {
                         .font(.footnote)
                         .foregroundStyle(Color.bjDanger)
                 }
-                PrimaryButton(title: submitTitle, isLoading: model.isSaving) {
+                PrimaryButton(title: submitTitle, isLoading: model.isSaving, isEnabled: model.isValid) {
                     Task {
                         if await model.save() {
                             onSuccess()
                         }
                     }
                 }
-                .disabled(!model.isValid)
-                .opacity(model.isValid ? 1 : 0.5)
             }
             .padding(BJSpacing.l)
         }

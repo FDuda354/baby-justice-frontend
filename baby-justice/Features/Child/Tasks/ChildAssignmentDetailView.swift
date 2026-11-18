@@ -62,7 +62,7 @@ struct ChildAssignmentDetailView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
-                StatusChip(text: assignment.status.displayName, color: .blue)
+                StatusChip(text: assignment.status.displayName, color: assignment.status.chipColor)
                 Label("Wzięte: \(Formatters.formatted(date: assignment.acceptedAt))", systemImage: "calendar")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)

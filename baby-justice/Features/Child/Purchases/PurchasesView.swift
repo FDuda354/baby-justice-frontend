@@ -180,7 +180,7 @@ private struct ChildPurchaseCard: View {
                     }
                     Spacer()
                 }
-                StatusChip(text: purchase.status.displayName, color: statusColor)
+                StatusChip(text: purchase.status.displayName, color: purchase.status.chipColor)
                 statusFooter
             }
         }
@@ -231,15 +231,6 @@ private struct ChildPurchaseCard: View {
             Text("Zakup anulowany — punkty wróciły na Twoje konto")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    private var statusColor: Color {
-        switch purchase.status {
-        case .pendingDelivery: .bjAmber
-        case .delivered: .blue
-        case .received: .bjPrimary
-        case .cancelled: .gray
         }
     }
 }
