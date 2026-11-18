@@ -11,7 +11,7 @@ struct ParentSettingsView: View {
                 ProgressView("Wczytywanie…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let loadError = viewModel.loadErrorMessage, viewModel.family == nil {
-                ScrollView {
+                BJScrollView {
                     ErrorBanner(message: loadError) {
                         Task { await viewModel.load() }
                     }
@@ -21,6 +21,7 @@ struct ParentSettingsView: View {
                 settingsForm
             }
         }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("Ustawienia")
         .task {
             await viewModel.loadIfNeeded()
@@ -49,6 +50,7 @@ struct ParentSettingsView: View {
             accountSection
             deleteAccountSection
         }
+        .bjReadableWidth()
     }
 
     private var familySection: some View {
@@ -153,12 +155,16 @@ private struct ChangePasswordSheet: View {
                     .disabled(!canSave)
                 }
             }
+            .bjReadableWidth()
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Zmiana hasła")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Anuluj") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
                     }
                 }
             }

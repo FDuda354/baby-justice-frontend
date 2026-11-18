@@ -10,7 +10,7 @@ struct ChildProfileView: View {
     @State private var codeCopied = false
 
     var body: some View {
-        ScrollView {
+        BJScrollView {
             content
         }
         .background(Color(.systemGroupedBackground))
@@ -308,12 +308,16 @@ private struct ChildChangePasswordSheet: View {
                     .disabled(!canSave)
                 }
             }
+            .bjReadableWidth()
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Zmiana hasła")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Anuluj") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
                     }
                 }
             }

@@ -9,20 +9,25 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
+                Text(title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .opacity(isLoading ? 0 : 1)
                 if isLoading {
                     ProgressView()
                         .tint(.white)
-                } else {
-                    Text(title)
-                        .font(.headline)
                 }
             }
+            .padding(.horizontal, BJSpacing.l)
+            .padding(.vertical, BJSpacing.m)
             .frame(maxWidth: .infinity)
-            .frame(height: BJSize.buttonHeight)
+            .frame(minHeight: BJSize.buttonHeight)
             .background(background)
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))
         }
         .disabled(isLoading)
+        .accessibilityLabel(title)
     }
 }

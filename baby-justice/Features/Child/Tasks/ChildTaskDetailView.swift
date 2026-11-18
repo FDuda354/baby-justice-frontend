@@ -8,7 +8,7 @@ struct ChildTaskDetailView: View {
     @State private var acceptedTrigger = false
 
     var body: some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 headerCard
                 if !task.description.isEmpty {
@@ -25,6 +25,7 @@ struct ChildTaskDetailView: View {
                 Task { await accept() }
             }
             .padding(BJSpacing.l)
+            .bjReadableWidth()
             .background(.regularMaterial)
         }
         .sensoryFeedback(.success, trigger: acceptedTrigger)

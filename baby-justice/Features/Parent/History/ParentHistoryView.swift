@@ -13,6 +13,7 @@ struct ParentHistoryView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, BJSpacing.l)
             .padding(.vertical, BJSpacing.s)
+            .bjReadableWidth()
 
             content
         }
@@ -50,7 +51,7 @@ struct ParentHistoryView: View {
     @ViewBuilder
     private var content: some View {
         if let errorMessage = viewModel.errorMessage {
-            ScrollView {
+            BJScrollView {
                 ErrorBanner(message: errorMessage) {
                     Task { await viewModel.loadCurrentSegment() }
                 }
@@ -83,6 +84,7 @@ struct ParentHistoryView: View {
                     PointsHistoryRow(entry: entry)
                 }
                 .listStyle(.insetGrouped)
+                .bjReadableWidth()
                 .refreshable { await viewModel.loadCurrentSegment() }
             }
         case .purchases:
@@ -93,6 +95,7 @@ struct ParentHistoryView: View {
                     PurchaseHistoryRow(purchase: purchase)
                 }
                 .listStyle(.insetGrouped)
+                .bjReadableWidth()
                 .refreshable { await viewModel.loadCurrentSegment() }
             }
         case .tasks:
@@ -103,6 +106,7 @@ struct ParentHistoryView: View {
                     TaskHistoryRow(assignment: assignment)
                 }
                 .listStyle(.insetGrouped)
+                .bjReadableWidth()
                 .refreshable { await viewModel.loadCurrentSegment() }
             }
         }
@@ -110,7 +114,7 @@ struct ParentHistoryView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        ScrollView {
+        BJScrollView {
             switch viewModel.segment {
             case .points:
                 EmptyStateView(

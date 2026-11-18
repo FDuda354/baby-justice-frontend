@@ -9,14 +9,14 @@ struct ParentNotificationsView: View {
                 ProgressView("Wczytywanie…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let errorMessage = viewModel.errorMessage {
-                ScrollView {
+                BJScrollView {
                     ErrorBanner(message: errorMessage) {
                         Task { await viewModel.load() }
                     }
                     .padding(.top, BJSpacing.xl)
                 }
             } else if viewModel.notifications.isEmpty {
-                ScrollView {
+                BJScrollView {
                     EmptyStateView(
                         icon: "bell",
                         title: "Brak powiadomień",
@@ -29,6 +29,7 @@ struct ParentNotificationsView: View {
                     NotificationRow(notification: notification)
                 }
                 .listStyle(.insetGrouped)
+                .bjReadableWidth()
                 .refreshable { await viewModel.load() }
             }
         }

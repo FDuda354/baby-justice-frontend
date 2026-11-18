@@ -49,7 +49,7 @@ struct TaskDetailsView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let message = model.errorMessage {
-            ScrollView {
+            BJScrollView {
                 ErrorBanner(message: message) {
                     Task { await model.load() }
                 }
@@ -61,7 +61,7 @@ struct TaskDetailsView: View {
     }
 
     private func detailsContent(_ details: TaskDetailsDTO) -> some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 taskCard(details.task)
                 if details.task.status == .active {

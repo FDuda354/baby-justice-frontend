@@ -36,6 +36,9 @@ struct ParentMoreView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped)
+        .bjReadableWidth()
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("Więcej")
         .alert("Czy na pewno chcesz się wylogować?", isPresented: $showLogoutConfirmation) {
             Button("Wyloguj się", role: .destructive) {

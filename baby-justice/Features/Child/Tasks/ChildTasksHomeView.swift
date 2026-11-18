@@ -13,6 +13,7 @@ struct ChildTasksHomeView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, BJSpacing.l)
             .padding(.vertical, BJSpacing.s)
+            .bjReadableWidth()
             content
         }
         .background(Color(.systemGroupedBackground))
@@ -35,7 +36,7 @@ struct ChildTasksHomeView: View {
             ProgressView("Ładowanie zadań...")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
+            BJScrollView {
                 VStack(spacing: BJSpacing.m) {
                     if let message = viewModel.errorMessage {
                         ErrorBanner(message: message) {

@@ -11,7 +11,7 @@ struct ChildDetailsView: View {
     }
 
     var body: some View {
-        ScrollView {
+        BJScrollView {
             content
         }
         .background(Color(.systemGroupedBackground))

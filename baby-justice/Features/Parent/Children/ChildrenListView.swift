@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct ChildrenListView: View {
+    @ScaledMetric private var childMinimumWidth: CGFloat = 320
     @State private var viewModel = ChildrenListViewModel()
     @State private var showingAdd = false
 
     var body: some View {
-        ScrollView {
+        BJScrollView(maxWidth: 1024) {
             content
         }
         .background(Color(.systemGroupedBackground))
@@ -15,7 +16,7 @@ struct ChildrenListView: View {
                 Button {
                     showingAdd = true
                 } label: {
-                    Image(systemName: "plus")
+                    Label("Dodaj dziecko", systemImage: "plus")
                 }
                 .accessibilityLabel("Dodaj dziecko")
             }
@@ -75,7 +76,7 @@ struct ChildrenListView: View {
     }
 
     private var childrenCards: some View {
-        VStack(spacing: BJSpacing.m) {
+        AdaptiveColumnsLayout(minimumColumnWidth: childMinimumWidth, maximumColumns: 2) {
             ForEach(viewModel.children) { child in
                 NavigationLink {
                     ChildDetailsView(childId: child.id)

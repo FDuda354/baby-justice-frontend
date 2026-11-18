@@ -73,7 +73,7 @@ struct DeliveriesView: View {
     }
 
     private var emptyContent: some View {
-        ScrollView {
+        BJScrollView {
             VStack(spacing: BJSpacing.l) {
                 if let actionErrorMessage = viewModel.actionErrorMessage {
                     ErrorBanner(message: actionErrorMessage) {
@@ -129,6 +129,7 @@ struct DeliveriesView: View {
             }
         }
         .listStyle(.plain)
+        .bjReadableWidth()
         .scrollContentBackground(.hidden)
         .refreshable {
             await viewModel.load()

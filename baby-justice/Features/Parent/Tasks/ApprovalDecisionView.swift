@@ -65,7 +65,7 @@ struct ApprovalDecisionView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            BJScrollView {
                 VStack(spacing: BJSpacing.xl) {
                     summary
                     if let message = model.errorMessage {
@@ -83,7 +83,11 @@ struct ApprovalDecisionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Zamknij") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Zamknij", systemImage: "xmark")
+                    }
                 }
             }
         }

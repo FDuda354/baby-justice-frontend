@@ -29,7 +29,7 @@ struct RewardDetailView: View {
     }
 
     private var detailContent: some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 heroImage
                 infoSection

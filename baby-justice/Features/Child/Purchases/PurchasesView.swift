@@ -85,7 +85,7 @@ struct PurchasesView: View {
     }
 
     private var emptyState: some View {
-        ScrollView {
+        BJScrollView {
             EmptyStateView(
                 icon: "bag.fill",
                 title: "Nie masz jeszcze zakupów",
@@ -97,7 +97,7 @@ struct PurchasesView: View {
     }
 
     private var purchasesList: some View {
-        ScrollView {
+        BJScrollView {
             VStack(spacing: BJSpacing.m) {
                 if let message = viewModel.errorMessage {
                     ErrorBanner(message: message) {

@@ -29,6 +29,8 @@ private enum ShopSegment: Hashable {
 }
 
 struct ShopView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric private var rewardMinimumWidth: CGFloat = 160
     @State private var viewModel = ShopViewModel()
     @State private var segment = ShopSegment.shop
 
@@ -50,6 +52,7 @@ struct ShopView: View {
         .pickerStyle(.segmented)
         .padding(.horizontal, BJSpacing.l)
         .padding(.vertical, BJSpacing.s)
+        .bjReadableWidth()
     }
 
     @ViewBuilder
@@ -95,7 +98,7 @@ struct ShopView: View {
     }
 
     private var emptyState: some View {
-        ScrollView {
+        BJScrollView {
             EmptyStateView(
                 icon: "gift.fill",
                 title: "Sklep jest jeszcze pusty",
@@ -107,7 +110,7 @@ struct ShopView: View {
     }
 
     private var rewardsGrid: some View {
-        ScrollView {
+        BJScrollView(maxWidth: 1024) {
             VStack(spacing: BJSpacing.l) {
                 if let message = viewModel.errorMessage {
                     ErrorBanner(message: message) {
@@ -138,10 +141,11 @@ struct ShopView: View {
     }
 
     private var gridColumns: [GridItem] {
-        [
-            GridItem(.flexible(), spacing: BJSpacing.m),
-            GridItem(.flexible(), spacing: BJSpacing.m)
-        ]
+        if dynamicTypeSize.isAccessibilitySize {
+            [GridItem(.flexible())]
+        } else {
+            [GridItem(.adaptive(minimum: rewardMinimumWidth), spacing: BJSpacing.m)]
+        }
     }
 
     private var balanceHeader: some View {

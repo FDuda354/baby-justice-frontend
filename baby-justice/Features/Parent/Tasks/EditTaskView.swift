@@ -22,7 +22,11 @@ struct EditTaskView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Anuluj") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
+                    }
                 }
             }
         }

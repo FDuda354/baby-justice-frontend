@@ -103,7 +103,7 @@ struct ParentRewardsHomeView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
+                BJScrollView {
                     content
                 }
                 .refreshable {
@@ -118,7 +118,7 @@ struct ParentRewardsHomeView: View {
                 Button {
                     showsAddReward = true
                 } label: {
-                    Image(systemName: "plus")
+                    Label("Dodaj nagrodę", systemImage: "plus")
                 }
                 .disabled(viewModel.selectedChildId == nil)
             }

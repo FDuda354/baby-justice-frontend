@@ -5,11 +5,14 @@ struct RegisterView: View {
 
     var body: some View {
         ScrollView {
-            if let auth = viewModel.registeredAuth {
-                successView(for: auth)
-            } else {
-                registrationForm
+            Group {
+                if let auth = viewModel.registeredAuth {
+                    successView(for: auth)
+                } else {
+                    registrationForm
+                }
             }
+            .bjReadableWidth(maxWidth: 520)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color(.systemGroupedBackground))
@@ -91,8 +94,9 @@ struct RegisterView: View {
                 .labelsHidden()
                 .environment(\.locale, Locale(identifier: "pl_PL"))
                 .padding(.horizontal, BJSpacing.m)
+                .padding(.vertical, BJSpacing.s)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: BJSize.fieldHeight)
+                .frame(minHeight: BJSize.fieldHeight)
                 .background(Color(.secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
                 .overlay(
@@ -183,6 +187,8 @@ private struct ChildRegistrationSuccessView: View {
                 .font(.system(size: 44, weight: .heavy, design: .monospaced))
                 .kerning(6)
                 .foregroundStyle(Color.bjInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
             Button {
                 copyCode()
             } label: {

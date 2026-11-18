@@ -6,11 +6,14 @@ struct ForgotPasswordView: View {
 
     var body: some View {
         ScrollView {
-            if viewModel.resetRequestSent {
-                confirmation
-            } else {
-                requestForm
+            Group {
+                if viewModel.resetRequestSent {
+                    confirmation
+                } else {
+                    requestForm
+                }
             }
+            .bjReadableWidth(maxWidth: 520)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color(.systemGroupedBackground))

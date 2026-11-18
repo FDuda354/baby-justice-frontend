@@ -16,7 +16,7 @@ struct ParentTasksView: View {
                 Button {
                     showAddTask = true
                 } label: {
-                    Image(systemName: "plus")
+                    Label("Dodaj zadanie", systemImage: "plus")
                 }
             }
         }
@@ -43,6 +43,7 @@ struct ParentTasksView: View {
         .pickerStyle(.segmented)
         .padding(.horizontal, BJSpacing.l)
         .padding(.vertical, BJSpacing.s)
+        .bjReadableWidth()
     }
 
     @ViewBuilder
@@ -51,7 +52,7 @@ struct ParentTasksView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let message = model.errorMessage {
-            ScrollView {
+            BJScrollView {
                 ErrorBanner(message: message) {
                     Task { await model.load() }
                 }
@@ -63,7 +64,7 @@ struct ParentTasksView: View {
     }
 
     private var taskList: some View {
-        ScrollView {
+        BJScrollView {
             LazyVStack(spacing: BJSpacing.m) {
                 if model.pendingApprovalsCount > 0 {
                     approvalsEntryRow

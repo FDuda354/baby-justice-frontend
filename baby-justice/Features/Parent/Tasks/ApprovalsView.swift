@@ -23,7 +23,7 @@ struct ApprovalsView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let message = model.errorMessage {
-            ScrollView {
+            BJScrollView {
                 ErrorBanner(message: message) {
                     Task { await model.load() }
                 }
@@ -37,7 +37,7 @@ struct ApprovalsView: View {
     }
 
     private var emptyState: some View {
-        ScrollView {
+        BJScrollView {
             EmptyStateView(
                 icon: "checkmark.seal.fill",
                 title: "Nic nie czeka na akceptację 🎉",
@@ -49,7 +49,7 @@ struct ApprovalsView: View {
     }
 
     private var approvalsList: some View {
-        ScrollView {
+        BJScrollView {
             LazyVStack(spacing: BJSpacing.m) {
                 ForEach(model.approvals) { assignment in
                     Button {

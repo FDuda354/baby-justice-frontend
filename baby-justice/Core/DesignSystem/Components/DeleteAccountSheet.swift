@@ -11,7 +11,7 @@ struct DeleteAccountSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            BJScrollView {
                 VStack(spacing: BJSpacing.l) {
                     warningHeader
                     consequencesCard
@@ -27,8 +27,10 @@ struct DeleteAccountSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Anuluj") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
                     }
                 }
             }

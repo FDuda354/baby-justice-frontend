@@ -7,8 +7,11 @@ enum AuthRoute: Hashable {
 }
 
 struct LandingView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var viewModel = AuthViewModel()
     @State private var path: [AuthRoute] = []
+    @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 42
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -19,11 +22,25 @@ struct LandingView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
-                VStack(spacing: 0) {
-                    Spacer()
-                    hero
-                    Spacer()
-                    actionPanel
+                GeometryReader { geometry in
+                    let usesColumns = horizontalSizeClass == .regular
+                        && geometry.size.width >= 700
+                        && !dynamicTypeSize.isAccessibilitySize
+                    let layout = usesColumns
+                        ? AnyLayout(HStackLayout(alignment: .center, spacing: BJSpacing.xxl))
+                        : AnyLayout(VStackLayout(spacing: BJSpacing.xxl))
+
+                    ScrollView {
+                        layout {
+                            hero
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            actionPanel
+                                .frame(maxWidth: usesColumns ? 360 : .infinity)
+                        }
+                        .padding(BJSpacing.xl)
+                        .frame(maxWidth: usesColumns ? 1080 : 520)
+                        .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                    }
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -39,15 +56,18 @@ struct LandingView: View {
             symbolComposition
             VStack(spacing: BJSpacing.s) {
                 Text("Baby Justice")
-                    .font(.system(size: 42, weight: .heavy, design: .rounded))
+                    .font(.system(size: titleSize, weight: .heavy, design: .rounded))
                     .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Rodzinne zadania, uczciwe punkty i nagrody, na które warto zapracować.")
                     .font(.headline)
                     .foregroundStyle(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(.horizontal, BJSpacing.xl)
+        .padding(.vertical, BJSpacing.xl)
     }
 
     private var symbolComposition: some View {
@@ -80,14 +100,11 @@ struct LandingView: View {
                 path.append(.register)
             }
         }
-        .padding(.horizontal, BJSpacing.l)
-        .padding(.top, BJSpacing.xl)
-        .padding(.bottom, BJSpacing.l)
+        .padding(BJSpacing.l)
         .frame(maxWidth: .infinity)
         .background(
-            UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(Color(.systemBackground))
-                .ignoresSafeArea(edges: .bottom)
         )
     }
 

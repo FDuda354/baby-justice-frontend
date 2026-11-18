@@ -30,6 +30,7 @@ struct ChildHistoryHomeView: View {
         .pickerStyle(.segmented)
         .padding(.horizontal, BJSpacing.l)
         .padding(.vertical, BJSpacing.s)
+        .bjReadableWidth()
     }
 
     @ViewBuilder
@@ -63,7 +64,7 @@ struct ChildHistoryHomeView: View {
     }
 
     private var historyList: some View {
-        ScrollView {
+        BJScrollView {
             VStack(spacing: BJSpacing.m) {
                 if let message = viewModel.errorMessage {
                     ErrorBanner(message: message) {

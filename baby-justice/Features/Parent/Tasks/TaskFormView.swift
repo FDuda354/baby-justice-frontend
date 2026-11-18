@@ -94,7 +94,7 @@ struct TaskFormView: View {
     let onSuccess: () -> Void
 
     var body: some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 FormTextField(label: "Nazwa zadania", text: $model.name)
                 descriptionEditor

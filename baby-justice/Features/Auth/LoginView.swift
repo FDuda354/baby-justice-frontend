@@ -26,6 +26,7 @@ struct LoginView: View {
                 .padding(.top, BJSpacing.s)
             }
             .padding(BJSpacing.l)
+            .bjReadableWidth(maxWidth: 520)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(Color(.systemGroupedBackground))

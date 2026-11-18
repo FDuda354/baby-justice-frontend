@@ -10,7 +10,7 @@ struct ChildAssignmentDetailView: View {
     @State private var completedTrigger = false
 
     var body: some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 headerCard
             }
@@ -87,6 +87,7 @@ struct ChildAssignmentDetailView: View {
             .disabled(viewModel.isPerformingAction)
         }
         .padding(BJSpacing.l)
+        .bjReadableWidth()
         .background(.regularMaterial)
     }
 

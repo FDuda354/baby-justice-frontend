@@ -8,8 +8,12 @@ struct SecondaryButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, BJSpacing.l)
+                .padding(.vertical, BJSpacing.m)
                 .frame(maxWidth: .infinity)
-                .frame(height: BJSize.buttonHeight)
+                .frame(minHeight: BJSize.buttonHeight)
                 .background(Color.bjMint)
                 .foregroundStyle(Color.bjAccent)
                 .clipShape(RoundedRectangle(cornerRadius: BJRadius.button, style: .continuous))

@@ -1,10 +1,13 @@
 import SwiftUI
 
 struct ParentDashboardView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .caption) private var statMinimumWidth: CGFloat = 96
+    @ScaledMetric private var childMinimumWidth: CGFloat = 320
     @State private var viewModel = ParentDashboardViewModel()
 
     var body: some View {
-        ScrollView {
+        BJScrollView(maxWidth: 1024) {
             content
         }
         .background(Color(.systemGroupedBackground))
@@ -61,7 +64,7 @@ struct ParentDashboardView: View {
     }
 
     private func statsRow(_ dashboard: ParentDashboardDTO) -> some View {
-        HStack(spacing: BJSpacing.m) {
+        AdaptiveColumnsLayout(minimumColumnWidth: statMinimumWidth, maximumColumns: dynamicTypeSize.isAccessibilitySize ? 1 : 3) {
             NavigationLink {
                 ApprovalsView()
             } label: {
@@ -91,13 +94,15 @@ struct ParentDashboardView: View {
                 message: "Dodaj dziecko jego kodem w zakładce Dzieci, aby zacząć przydzielać zadania i nagrody."
             )
         } else {
-            ForEach(dashboard.children) { child in
-                NavigationLink {
-                    ChildDetailsView(childId: child.id)
-                } label: {
-                    childCard(child)
+            AdaptiveColumnsLayout(minimumColumnWidth: childMinimumWidth, maximumColumns: 2) {
+                ForEach(dashboard.children) { child in
+                    NavigationLink {
+                        ChildDetailsView(childId: child.id)
+                    } label: {
+                        childCard(child)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -164,9 +169,9 @@ private struct StatCard: View {
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.vertical, BJSpacing.l)
         .padding(.horizontal, BJSpacing.xs)
         .background(highlighted ? Color.bjAmber.opacity(0.12) : Color(.secondarySystemGroupedBackground))

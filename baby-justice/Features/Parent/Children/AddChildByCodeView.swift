@@ -10,7 +10,7 @@ struct AddChildByCodeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            BJScrollView {
                 VStack(alignment: .leading, spacing: BJSpacing.l) {
                     codeField
                     Text("Dziecko najpierw zakłada własne konto w aplikacji (na ekranie startowym wybiera „Zarejestruj się”, a potem rolę „Dziecko”) i dostaje swój kod dziecka. Wpisz ten kod powyżej, aby dodać je do rodziny.")
@@ -31,8 +31,12 @@ struct AddChildByCodeView: View {
             .navigationTitle("Dodaj dziecko")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Anuluj") { dismiss() }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
+                    }
                 }
             }
         }

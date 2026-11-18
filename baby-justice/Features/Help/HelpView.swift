@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HelpView: View {
     var body: some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.xl) {
                 introCard
                 familySection

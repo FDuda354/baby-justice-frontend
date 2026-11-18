@@ -39,7 +39,7 @@ struct AddRewardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            BJScrollView {
                 VStack(alignment: .leading, spacing: BJSpacing.l) {
                     if let errorMessage = viewModel.errorMessage {
                         ErrorBanner(message: errorMessage) {
@@ -61,9 +61,11 @@ struct AddRewardView: View {
             .navigationTitle("Nowa nagroda")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Anuluj") {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
                     }
                 }
             }

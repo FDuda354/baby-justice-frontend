@@ -11,9 +11,11 @@ struct FormTextField: View {
             Text(label)
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             field
                 .padding(.horizontal, BJSpacing.m)
-                .frame(height: BJSize.fieldHeight)
+                .padding(.vertical, BJSpacing.m)
+                .frame(minHeight: BJSize.fieldHeight)
                 .background(Color(.secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: BJRadius.field, style: .continuous))
                 .overlay(

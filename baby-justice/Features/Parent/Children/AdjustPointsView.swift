@@ -14,7 +14,7 @@ struct AdjustPointsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            BJScrollView {
                 VStack(alignment: .leading, spacing: BJSpacing.l) {
                     Picker("Rodzaj zmiany", selection: $direction) {
                         ForEach(AdjustDirection.allCases) { option in
@@ -41,8 +41,12 @@ struct AdjustPointsView: View {
             .navigationTitle("Punkty: \(child.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Anuluj") { dismiss() }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Label("Anuluj", systemImage: "xmark")
+                    }
                 }
             }
         }

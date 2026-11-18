@@ -89,7 +89,7 @@ struct RewardDetailsView: View {
     }
 
     private func detailsContent(_ reward: RewardDTO) -> some View {
-        ScrollView {
+        BJScrollView {
             VStack(alignment: .leading, spacing: BJSpacing.l) {
                 if let actionErrorMessage = viewModel.actionErrorMessage {
                     ErrorBanner(message: actionErrorMessage) {

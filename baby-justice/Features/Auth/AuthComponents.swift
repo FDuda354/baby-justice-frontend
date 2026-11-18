@@ -16,10 +16,12 @@ struct AuthHeader: View {
             Text(title)
                 .font(.title2.bold())
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
     }
@@ -48,6 +50,7 @@ struct AuthErrorLabel: View {
             Text(message)
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(Color.bjDanger)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(BJSpacing.m)

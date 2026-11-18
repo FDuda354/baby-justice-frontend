@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ChildDashboardView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric private var statMinimumWidth: CGFloat = 150
     @State private var viewModel = ChildDashboardViewModel()
 
     var body: some View {
@@ -41,7 +43,7 @@ struct ChildDashboardView: View {
     }
 
     private func dashboardContent(_ dashboard: ChildDashboardDTO) -> some View {
-        ScrollView {
+        BJScrollView(maxWidth: 1024) {
             VStack(spacing: BJSpacing.l) {
                 if let message = viewModel.errorMessage {
                     ErrorBanner(message: message) {
@@ -65,7 +67,7 @@ struct ChildDashboardView: View {
     }
 
     private func statsGrid(_ dashboard: ChildDashboardDTO) -> some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: BJSpacing.m), GridItem(.flexible(), spacing: BJSpacing.m)], spacing: BJSpacing.m) {
+        AdaptiveColumnsLayout(minimumColumnWidth: statMinimumWidth, maximumColumns: dynamicTypeSize.isAccessibilitySize ? 1 : 4) {
             StatTile(icon: "sparkles", value: dashboard.availableTasksCount, label: "Dostępne zadania", color: .bjPrimary)
             StatTile(icon: "figure.run", value: dashboard.activeTasksCount, label: "W trakcie", color: .blue)
             StatTile(icon: "hourglass", value: dashboard.pendingApprovalsCount, label: "Czekają na akceptację", color: .bjAmber)
@@ -186,6 +188,8 @@ private struct HeroCard: View {
                 Text("\(dashboard.pointsBalance)")
                     .font(.system(size: 56, weight: .heavy, design: .rounded))
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .contentTransition(.numericText())
                 Text("pkt")
                     .font(.title3.bold())
@@ -225,10 +229,10 @@ private struct StatTile: View {
             Text(label)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .lineLimit(2, reservesSpace: true)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(BJSpacing.m)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
